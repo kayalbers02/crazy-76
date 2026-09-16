@@ -1,0 +1,11 @@
+rules_version = '2';
+// Crazy 76: bewijs (foto's, video's, geluid) mag tot en met het weekend worden geüpload en bekeken.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /proof/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.time < timestamp.date(2026, 12, 31)
+                   && request.resource.size < 200 * 1024 * 1024;
+    }
+  }
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Afvinklijst voor Crazy 76 Dublin: 76 opdrachten, punten en de klok.">
+<meta name="description" content="Teamapp voor Crazy 76 Dublin: stuur bewijs in, zie je punten en de stand.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,1093 +16,840 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@700;800&family=Uncial+Antiqua&display=swap">
+<link rel="stylesheet" href="shared/ui.css">
 <style>
-  :root {
-    --ground: #E9EFE7;
-    --surface: #F8FBF6;
-    --ink: #15241A;
-    --muted: #56675B;
-    --line: #C8D4C9;
-    --green: #1F4D2B;
-    --green-soft: #D2E3D4;
-    --on-green: #F8FBF6;
-    --gold: #8E6508;
-    --gold-soft: #F1E2B6;
-    --late: #B3261E;
-    --bar: #1F4D2B;
-    --bar-ink: #F2F7F0;
-    --bar-muted: #A9C4AE;
-    --bar-gold: #E8BC52;
-    --bar-line: rgba(242, 247, 240, 0.16);
-    --bar-hi: rgba(242, 247, 240, 0.12);
-    --bar-late: #B8322A;
-    --toast-bg: #15241A;
-    --toast-ink: #F2F7F0;
-    --toast-action: #E8BC52;
-    --backdrop: rgba(10, 22, 14, 0.55);
-    --shadow: 0 14px 34px -14px rgba(18, 44, 26, 0.5);
-    --f-mark: "Uncial Antiqua", "Luminari", Georgia, serif;
-    --f-num: "Big Shoulders Display", "Bahnschrift", "Arial Narrow", sans-serif;
-    --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
-    --top-h: 128px;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground: #0C1510;
-      --surface: #13211A;
-      --ink: #E2ECE3;
-      --muted: #93A698;
-      --line: #263A2C;
-      --green: #74C28F;
-      --green-soft: #1C3826;
-      --on-green: #0C1510;
-      --gold: #E3B54B;
-      --gold-soft: #33290F;
-      --late: #FF8474;
-      --bar: #112619;
-      --bar-ink: #EAF2EA;
-      --bar-muted: #8EAE96;
-      --bar-gold: #E8BC52;
-      --bar-line: rgba(234, 242, 234, 0.1);
-      --bar-hi: rgba(234, 242, 234, 0.1);
-      --bar-late: #A93226;
-      --toast-bg: #E2ECE3;
-      --toast-ink: #0C1510;
-      --toast-action: #7A5608;
-      --backdrop: rgba(0, 0, 0, 0.65);
-      --shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.85);
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ground: #0C1510;
-    --surface: #13211A;
-    --ink: #E2ECE3;
-    --muted: #93A698;
-    --line: #263A2C;
-    --green: #74C28F;
-    --green-soft: #1C3826;
-    --on-green: #0C1510;
-    --gold: #E3B54B;
-    --gold-soft: #33290F;
-    --late: #FF8474;
-    --bar: #112619;
-    --bar-ink: #EAF2EA;
-    --bar-muted: #8EAE96;
-    --bar-gold: #E8BC52;
-    --bar-line: rgba(234, 242, 234, 0.1);
-    --bar-hi: rgba(234, 242, 234, 0.1);
-    --bar-late: #A93226;
-    --toast-bg: #E2ECE3;
-    --toast-ink: #0C1510;
-    --toast-action: #7A5608;
-    --backdrop: rgba(0, 0, 0, 0.65);
-    --shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.85);
-    color-scheme: dark;
-  }
+  :root { --top-h: 150px; }
+  .app { max-width: 600px; margin-inline: auto; padding-inline: 16px; padding-block: 0 calc(112px + env(safe-area-inset-bottom, 0px)); }
 
-  *, *::before, *::after { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  html { background: var(--ground); -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--ground);
-    color: var(--ink);
-    font: 16px/1.45 var(--f-body);
-    -webkit-tap-highlight-color: transparent;
-  }
-  button, input, select { font: inherit; color: inherit; }
-  button { cursor: pointer; }
-  button:focus-visible, input:focus-visible, select:focus-visible, .switch:focus-visible {
-    outline: 3px solid var(--gold);
-    outline-offset: 2px;
-  }
-  p { margin: 0; }
-  .visually-hidden {
-    position: absolute; width: 1px; height: 1px; overflow: hidden;
-    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
-  }
-
-  .app {
-    max-width: 560px;
-    margin-inline: auto;
-    padding-inline: 16px;
-    padding-block: 0 calc(112px + env(safe-area-inset-bottom, 0px));
-  }
+  /* ---------- Inlog en setup ---------- */
+  .gate { display: grid; gap: 22px; min-height: 100dvh; padding-block: calc(40px + env(safe-area-inset-top, 0px)) 40px; align-content: start; }
+  .gate .wordmark { font-size: 44px; color: var(--green); }
+  .gate .wordmark .gold { color: var(--gold); }
+  .gate h1 { font-family: var(--f-num); font-weight: 800; font-size: 30px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--green); line-height: 1.05; text-wrap: balance; }
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .team-pick { display: grid; gap: 4px; padding: 16px 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--surface); text-align: left; }
+  .team-pick .eyebrow { color: var(--muted); }
+  .team-pick .nm { font-family: var(--f-num); font-weight: 800; font-size: 26px; line-height: 1; }
+  .team-pick.A .nm { color: var(--team-a); }
+  .team-pick.B .nm { color: var(--team-b); }
+  .team-pick[aria-pressed="true"] { border-color: var(--green); background: var(--green-soft); }
+  .gate code { padding: 2px 6px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; }
 
   /* ---------- Scorebord ---------- */
-  .top {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    margin-inline: -16px;
-    padding-inline: 16px;
-    padding-top: calc(10px + env(safe-area-inset-top, 0px));
-    background: var(--bar);
-    color: var(--bar-ink);
-  }
+  .top { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding-inline: 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); background: var(--bar); color: var(--bar-ink); }
   .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  .wordmark { font-family: var(--f-mark); font-size: 28px; line-height: 1; white-space: nowrap; }
-  .wordmark .gold { color: var(--bar-gold); }
-  .city {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--bar-muted);
-  }
-  .team-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    min-height: 36px; max-width: 52%;
-    padding: 6px 10px 6px 14px;
-    border: 1px solid var(--bar-line); border-radius: 999px;
-    background: transparent; color: var(--bar-ink);
-    font-size: 14px; font-weight: 700;
-  }
+  .city { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bar-muted); }
+  .team-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 55%; padding: 6px 10px 6px 14px; border: 1px solid var(--bar-line); border-radius: 999px; background: transparent; color: var(--bar-ink); font-size: 14px; font-weight: 700; }
   .team-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .team-btn.empty span { color: var(--bar-muted); }
-  .team-btn svg { width: 18px; height: 18px; flex: none; }
+  .team-btn svg { width: 16px; height: 16px; flex: none; }
+  .stats { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 18px; padding-block: 12px 8px; }
+  .stat .big { display: block; font-family: var(--f-num); font-weight: 800; font-size: 44px; line-height: 0.85; font-variant-numeric: tabular-nums; }
+  .stat.us .big { color: var(--bar-gold); }
+  .stat.them .big { color: var(--bar-ink); opacity: 0.85; }
+  .unit { display: block; margin-top: 5px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bar-muted); white-space: nowrap; }
+  .timer { justify-self: end; display: grid; justify-items: end; gap: 3px; min-height: 52px; padding: 7px 12px; border-radius: 12px; background: var(--bar-hi); color: var(--bar-ink); }
+  .timer-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bar-muted); white-space: nowrap; }
+  .timer-value { font-family: var(--f-num); font-weight: 800; font-size: 28px; line-height: 0.9; font-variant-numeric: tabular-nums; }
+  .timer[data-phase="soon"] .timer-value, .timer[data-phase="done"] .timer-value { color: var(--bar-gold); }
+  .timer[data-phase="over"], .timer[data-phase="late"] { background: var(--bar-red); }
+  .timer[data-phase="over"] .timer-label, .timer[data-phase="late"] .timer-label { color: var(--bar-ink); }
+  .subline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 10px; font-size: 13px; color: var(--bar-muted); }
+  .subline b { color: var(--bar-ink); font-weight: 700; }
+  .lead { font-weight: 700; color: var(--bar-gold); }
+  .progress-top { height: 4px; margin-inline: -16px; background: var(--bar-line); }
+  .progress-top span { display: block; height: 100%; width: 0; background: var(--bar-gold); transition: width 0.4s ease; }
 
-  .stats {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
-    align-items: end;
-    gap: 20px;
-    padding-block: 12px;
-  }
-  .big {
-    display: block;
-    font-family: var(--f-num); font-weight: 800; font-size: 44px; line-height: 0.85;
-    font-variant-numeric: tabular-nums;
-  }
-  .score .big { color: var(--bar-gold); }
-  .unit {
-    display: block; margin-top: 5px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--bar-muted); white-space: nowrap;
-  }
-  .timer {
-    justify-self: end;
-    display: grid; justify-items: end; gap: 3px;
-    min-height: 52px; padding: 7px 12px;
-    border: 0; border-radius: 12px;
-    background: var(--bar-hi); color: var(--bar-ink);
-  }
-  .timer-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--bar-muted); white-space: nowrap;
-  }
-  .timer-value {
-    font-family: var(--f-num); font-weight: 800; font-size: 28px; line-height: 0.9;
-    font-variant-numeric: tabular-nums;
-  }
-  .timer[data-state="soon"] .timer-value,
-  .timer[data-state="done"] .timer-value { color: var(--bar-gold); }
-  .timer[data-state="late"] { background: var(--bar-late); }
-  .timer[data-state="late"] .timer-label { color: var(--bar-ink); }
-  .progress { height: 4px; margin-inline: -16px; background: var(--bar-line); }
-  .progress span { display: block; height: 100%; width: 0; background: var(--bar-gold); transition: width 0.4s ease; }
-
-  /* ---------- Bovenkant lijst ---------- */
+  /* ---------- Gereedschap ---------- */
   .tools { display: grid; gap: 10px; padding-block: 14px 4px; }
-  .hint {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 12px 12px 14px;
-    border-radius: 12px;
-    background: var(--gold-soft);
-    font-size: 14px; line-height: 1.35;
-  }
-  .hint p { flex: 1; }
-  .hint b { color: var(--gold); }
-  .seg {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
-    padding: 3px;
-    border: 1px solid var(--line); border-radius: 12px;
-    background: var(--surface);
-  }
-  .seg button {
-    min-height: 40px; padding: 8px 4px;
-    border: 0; border-radius: 9px;
-    background: transparent; color: var(--muted);
-    font-size: 14px; font-weight: 700;
-  }
+  .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  .seg button { min-height: 40px; padding: 8px 2px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; }
   .seg button[aria-pressed="true"] { background: var(--green); color: var(--on-green); }
-  .seg .n { margin-left: 3px; font-family: var(--f-num); font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
-  .search {
-    display: flex; align-items: center; gap: 8px;
-    padding-inline: 12px;
-    border: 1px solid var(--line); border-radius: 12px;
-    background: var(--surface); color: var(--muted);
-  }
+  .seg .n { margin-left: 3px; font-family: var(--f-num); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .search { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); }
   .search:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
   .search svg { width: 18px; height: 18px; flex: none; }
-  .search input {
-    flex: 1; min-width: 0;
-    padding-block: 11px;
-    border: 0; outline: none; background: transparent; color: var(--ink);
-    font-size: 16px;
-  }
-  .search input::placeholder { color: var(--muted); }
-  .cats {
-    display: flex; gap: 6px;
-    margin-inline: -16px; padding-inline: 16px; padding-block: 2px;
-    overflow-x: auto; scrollbar-width: none;
-  }
+  .search input { flex: 1; min-width: 0; padding-block: 11px; border: 0; outline: none; background: transparent; color: var(--ink); font-size: 16px; }
+  .cats { display: flex; gap: 6px; margin-inline: -16px; padding-inline: 16px; padding-block: 2px; overflow-x: auto; scrollbar-width: none; }
   .cats::-webkit-scrollbar { display: none; }
-  .cats button {
-    flex: none; min-height: 36px; padding: 6px 12px;
-    border: 1px solid var(--line); border-radius: 999px;
-    background: transparent; color: var(--ink);
-    font-size: 13px; font-weight: 700; white-space: nowrap;
-  }
+  .cats button { flex: none; min-height: 36px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
   .cats .c { margin-left: 2px; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
 
-  /* ---------- Categorieën en opdrachten ---------- */
+  /* ---------- Lijst ---------- */
   .cat { scroll-margin-top: var(--top-h); }
-  .cat-head {
-    position: sticky; top: var(--top-h); z-index: 5;
-    display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px;
-    padding-block: 18px 0;
-    background: var(--ground);
-  }
-  .cat-head h2 {
-    margin: 0;
-    font-family: var(--f-num); font-weight: 800; font-size: 24px; line-height: 1;
-    letter-spacing: 0.04em; text-transform: uppercase; text-wrap: balance;
-    color: var(--green);
-  }
+  .cat-head { position: sticky; top: var(--top-h); z-index: 5; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px; padding-block: 18px 0; background: var(--ground); }
   .cat-count { font-size: 13px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cat-note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
-  .bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
-  .bar span { display: block; height: 100%; width: 0; background: var(--green); transition: width 0.3s ease; }
-  .cat-head .bar { grid-column: 1 / -1; margin-top: 8px; }
-
-  .task {
-    display: grid;
-    grid-template-columns: 30px 1fr 46px;
-    align-items: start;
-    gap: 0 10px;
-    padding-block: 14px;
-    border-bottom: 1px solid var(--line);
-    cursor: pointer;
-  }
-  .nr {
-    padding-top: 1px;
-    font-family: var(--f-num); font-weight: 800; font-size: 22px; line-height: 1.05;
-    text-align: right; color: var(--muted); font-variant-numeric: tabular-nums;
-  }
+  .cat-head .bar { grid-column: 1 / -1; margin-top: 8px; height: 4px; }
+  .task { display: grid; grid-template-columns: 30px 1fr auto; align-items: start; gap: 0 10px; padding-block: 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .nr { padding-top: 1px; font-family: var(--f-num); font-weight: 800; font-size: 22px; line-height: 1.05; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
   .text { font-size: 16px; line-height: 1.42; text-wrap: pretty; }
   .text b { font-weight: 700; color: var(--green); }
   .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
-  .proof { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; }
-  .proof svg { width: 16px; height: 16px; }
-  .pts { display: inline-flex; align-items: center; gap: 3px; }
-  .pip { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
-  .pip.on { background: var(--gold); }
-  .pts b { margin-left: 5px; font-family: var(--f-num); font-weight: 800; font-size: 16px; color: var(--gold); }
-  .dub {
-    min-height: 30px; padding: 2px 9px;
-    border: 1px dashed var(--line); border-radius: 7px;
-    background: transparent; color: var(--muted);
-    font-family: var(--f-num); font-weight: 800; font-size: 15px; letter-spacing: 0.04em;
-  }
-  .dub[aria-pressed="true"] { border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold); }
-  .app.started .dub:not([aria-pressed="true"]) { display: none; }
-  .dub[aria-pressed="true"]::after { content: " dubbel"; font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: 0; }
-  .check {
-    justify-self: end;
-    display: grid; place-items: center;
-    width: 44px; height: 44px;
-    border: 2px solid var(--line); border-radius: 50%;
-    background: var(--surface); color: transparent;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .check svg { width: 24px; height: 24px; }
-  .task.done .check { background: var(--green); border-color: var(--green); color: var(--on-green); }
-  .task.done .nr { color: var(--green); }
-  .task.done .text, .task.done .text b { color: var(--muted); }
-  .task.stamp .check { animation: stamp 0.38s cubic-bezier(0.2, 1.5, 0.4, 1); }
-  @keyframes stamp { from { transform: scale(1.4) rotate(-14deg); } to { transform: none; } }
-  @media (hover: hover) {
-    .task:hover .check { border-color: var(--green); }
-    .cats button:hover, .dub:hover { border-color: var(--green); }
-  }
+  .dub { min-height: 30px; padding: 2px 9px; border: 1px dashed var(--line); border-radius: 7px; background: transparent; color: var(--muted); font-family: var(--f-num); font-weight: 800; font-size: 15px; letter-spacing: 0.04em; }
+  .dub-on { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 7px; background: var(--gold-soft); color: var(--gold); font-family: var(--f-num); font-weight: 800; font-size: 15px; }
+  .st { justify-self: end; display: grid; place-items: center; gap: 3px; min-width: 56px; text-align: center; }
+  .st .ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); color: var(--muted); }
+  .st .ico svg { width: 20px; height: 20px; }
+  .st .lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .task.pending .st .ico { border-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+  .task.pending .st .lbl { color: var(--gold); }
+  .task.approved .st .ico { border-color: var(--green); background: var(--green); color: var(--on-green); }
+  .task.approved .st .lbl { color: var(--green); }
+  .task.rejected .st .ico { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+  .task.rejected .st .lbl { color: var(--red); }
+  .task.approved .nr { color: var(--green); }
+  .task.approved .text, .task.approved .text b, .task.rejected .text, .task.rejected .text b { color: var(--muted); }
+  .task.rejected .text { text-decoration: line-through; text-decoration-color: var(--line); }
   .empty { padding: 36px 8px; text-align: center; color: var(--muted); text-wrap: balance; }
 
-  /* ---------- Stand ---------- */
-  .score-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-block: 22px 16px; }
-  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-  .total {
-    margin-top: 6px;
-    font-family: var(--f-num); font-weight: 800; font-size: 88px; line-height: 0.8;
-    color: var(--green); font-variant-numeric: tabular-nums;
-  }
-  .hero-side { text-align: right; font-size: 14px; color: var(--muted); display: grid; gap: 4px; }
-  .hero-side b { color: var(--ink); font-variant-numeric: tabular-nums; }
-  .ledger {
-    margin: 0; padding: 0; list-style: none;
-    border: 1px solid var(--line); border-radius: 14px;
-    background: var(--surface); overflow: hidden;
-  }
-  .ledger li {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    padding: 13px 14px;
-    border-top: 1px solid var(--line);
-  }
-  .ledger li:first-child { border-top: 0; }
-  .lab-wrap { display: grid; gap: 3px; min-width: 0; }
-  .lab { font-weight: 700; }
-  .sub { font-size: 13px; color: var(--muted); }
-  .val {
-    min-width: 3ch; text-align: right;
-    font-family: var(--f-num); font-weight: 800; font-size: 28px; line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .val.plus { color: var(--green); }
-  .val.minus { color: var(--late); }
-  .ledger li.sum { background: var(--green); color: var(--on-green); border-top: 0; }
-  .ledger li.sum .sub { color: inherit; opacity: 0.8; }
-  .ledger li.sum .val { font-size: 38px; }
-  .stepper { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; }
-  .stepper button {
-    width: 38px; height: 38px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: var(--ground); color: var(--ink);
-    font-family: var(--f-num); font-weight: 800; font-size: 22px; line-height: 1;
-  }
-  .stepper output { min-width: 2ch; text-align: center; font-family: var(--f-num); font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
-  .switch {
-    appearance: none; -webkit-appearance: none;
-    position: relative;
-    width: 50px; height: 30px; margin: 4px 0 0;
-    border-radius: 999px; background: var(--line);
-    cursor: pointer; transition: background 0.2s;
-  }
-  .switch::after {
-    content: ""; position: absolute; top: 3px; left: 3px;
-    width: 24px; height: 24px; border-radius: 50%;
-    background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s;
-  }
-  .switch:checked { background: var(--green); }
-  .switch:checked::after { transform: translateX(20px); }
+  /* ---------- Opdracht-dialoog ---------- */
+  .task-dlg .sheet { gap: 14px; }
+  .task-dlg .text { font-size: 17px; }
+  .task-dlg .metaline { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .pick-btns { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .status-head { display: grid; gap: 4px; padding: 14px; border-radius: 12px; }
+  .status-head.pending { background: var(--gold-soft); color: var(--gold); }
+  .status-head.approved { background: var(--green-soft); color: var(--green); }
+  .status-head.rejected { background: var(--red-soft); color: var(--red); }
+  .status-head .big { font-family: var(--f-num); font-weight: 800; font-size: 30px; line-height: 1; }
+  .status-head .why { color: var(--ink); font-size: 15px; }
 
-  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-  .btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 50px; padding: 12px 14px;
-    border: 1px solid transparent; border-radius: 12px;
-    font-size: 15px; font-weight: 700; text-align: center;
-  }
-  .btn svg { width: 18px; height: 18px; flex: none; }
-  .btn.primary { background: var(--green); color: var(--on-green); }
-  .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
-  .btn.danger { background: transparent; border-color: var(--late); color: var(--late); }
-  .btn.small { min-height: 40px; padding: 8px 14px; font-size: 14px; flex: none; }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .section-label {
-    margin: 26px 0 12px;
-    font-family: var(--f-num); font-weight: 800; font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase;
-    color: var(--green);
-  }
-  .cats-score { display: grid; gap: 14px; }
+  /* ---------- Stand ---------- */
+  .stand { display: grid; gap: 16px; padding-block: 18px; }
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .vs .card { display: grid; gap: 6px; padding: 14px; border-radius: 14px; background: var(--surface); border: 2px solid var(--line); }
+  .vs .card.lead { border-color: var(--gold); }
+  .vs .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vs .tot { font-family: var(--f-num); font-weight: 800; font-size: 56px; line-height: 0.85; color: var(--green); font-variant-numeric: tabular-nums; }
+  .vs .card.A .tot { color: var(--team-a); }
+  .vs .card.B .tot { color: var(--team-b); }
+  .vs .sml { font-size: 13px; color: var(--muted); }
+  .verdict { padding: 12px 14px; border-radius: 12px; background: var(--gold-soft); color: var(--gold); font-weight: 700; text-align: center; text-wrap: balance; }
+  .cats-score { display: grid; gap: 12px; }
   .cs { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: baseline; }
   .cs-name { font-weight: 700; }
   .cs-num { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cs-num b { color: var(--ink); }
   .cs .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; }
-  .fine { margin-top: 22px; font-size: 13px; color: var(--muted); }
+  .section-label { margin-top: 8px; }
 
-  /* ---------- Tabbalk, melding, instellingen ---------- */
-  .tabbar {
-    position: fixed; z-index: 30;
-    left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
-    width: min(528px, calc(100% - 32px));
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-    padding: 4px;
-    border-radius: 16px;
-    background: var(--bar);
-    box-shadow: var(--shadow);
-  }
-  .tabbar button {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 50px;
-    border: 0; border-radius: 12px;
-    background: transparent; color: var(--bar-muted);
-    font-size: 15px; font-weight: 700;
-  }
-  .tabbar button[aria-pressed="true"] { background: var(--bar-hi); color: var(--bar-ink); }
-  .tabbar svg { width: 20px; height: 20px; }
-
-  .toast {
-    position: fixed; z-index: 40;
-    left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-    transform: translate(-50%, 14px);
-    width: min(528px, calc(100% - 32px));
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 8px 10px 16px; min-height: 52px;
-    border-radius: 12px;
-    background: var(--toast-bg); color: var(--toast-ink);
-    box-shadow: var(--shadow);
-    opacity: 0; visibility: hidden; pointer-events: none;
-    transition: opacity 0.2s, transform 0.2s, visibility 0s linear 0.2s;
-  }
-  .toast.show { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); transition-delay: 0s; }
-  .toast span { flex: 1; font-size: 14px; line-height: 1.35; }
-  .toast button {
-    flex: none; min-height: 40px; padding: 6px 10px;
-    border: 0; border-radius: 8px; background: transparent;
-    color: var(--toast-action); font-size: 14px; font-weight: 700;
-  }
-
-  dialog {
-    width: min(480px, calc(100% - 32px));
-    padding: 0; border: 0; border-radius: 18px;
-    background: var(--surface); color: var(--ink);
-    box-shadow: var(--shadow);
-  }
-  dialog::backdrop { background: var(--backdrop); }
-  .sheet { display: grid; gap: 18px; padding: 20px; }
-  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .sheet-head h2 {
-    margin: 0;
-    font-family: var(--f-num); font-weight: 800; font-size: 26px; letter-spacing: 0.04em; text-transform: uppercase;
-    color: var(--green);
-  }
-  .icon-btn {
-    width: 40px; height: 40px;
-    border: 1px solid var(--line); border-radius: 50%;
-    background: transparent; color: var(--ink);
-    font-size: 22px; line-height: 1;
-  }
-  .field { display: grid; gap: 7px; }
-  .field-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .field input, .field select {
-    width: 100%; padding: 11px 12px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: var(--ground); color: var(--ink);
-    font-size: 16px;
-  }
-  .field .actions { margin-top: 2px; }
-  .field .btn { width: 100%; }
-
-  @media (max-width: 370px) {
-    .stats { gap: 14px; }
-    .big { font-size: 38px; }
-    .timer-value { font-size: 24px; }
-    .wordmark { font-size: 24px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  }
+  body.mock .top::after { content: "Demo: alles blijft in deze browser"; display: block; margin-inline: -16px; padding: 3px 16px; background: var(--bar-gold); color: #15241A; font-size: 12px; font-weight: 700; text-align: center; }
+  .stamp .ico { animation: stamp 0.38s cubic-bezier(0.2, 1.5, 0.4, 1); }
+  @keyframes stamp { from { transform: scale(1.4) rotate(-14deg); } to { transform: none; } }
+  .team-btn { max-width: 48%; }
+  @media (max-width: 420px) { .brand .city { display: none; } }
+  @media (max-width: 370px) { .stats { gap: 12px; } .stat .big { font-size: 38px; } .timer-value { font-size: 24px; } .wordmark { font-size: 24px; } .seg button { font-size: 12px; } }
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="top" id="top">
-    <div class="brand-row">
-      <p class="brand"><span class="wordmark">Crazy <span class="gold">76</span></span><span class="city">Dublin</span></p>
-      <button type="button" class="team-btn empty" id="teamBtn" aria-label="Teamnaam en instellingen">
-        <span id="teamName">Teamnaam</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
-      </button>
+
+  <section class="gate" id="viewSetup" hidden>
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>De app is nog niet gekoppeld</h1>
+    <p>Er staan nog geen Firebase-gegevens in <code>shared/config.js</code>. Zodra die erin staan, werkt de app voor alle teams en begeleiders.</p>
+    <p class="fine">Wil je alvast oefenen? Open de app met <code>?mock=1</code> achter het adres; alles blijft dan in deze browser.</p>
+    <a class="btn ghost" href="?mock=1">Oefenen zonder koppeling</a>
+  </section>
+
+  <section class="gate" id="viewWait">
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>Verbinden…</h1>
+    <p class="fine" id="waitText">Even geduld, de app haalt de stand op.</p>
+  </section>
+
+  <section class="gate" id="viewLogin" hidden>
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>Welk team zijn jullie?</h1>
+    <div class="teams" id="teamPick">
+      <button type="button" class="team-pick A" data-team="A" aria-pressed="false"><span class="eyebrow">Team 1</span><span class="nm" id="pickNameA">Team 1</span></button>
+      <button type="button" class="team-pick B" data-team="B" aria-pressed="false"><span class="eyebrow">Team 2</span><span class="nm" id="pickNameB">Team 2</span></button>
     </div>
-    <div class="stats">
-      <p class="stat score"><span class="big" id="scoreNow">0</span><span class="unit">punten / <span id="maxPts">189</span></span></p>
-      <p class="stat"><span class="big" id="doneNow">0</span><span class="unit">van 76 gedaan</span></p>
-      <button type="button" class="timer" id="timerBtn" data-state="idle">
-        <span class="timer-label" id="timerLabel">Start klok</span>
-        <span class="timer-value" id="timerValue">3:00:00</span>
-      </button>
+    <div class="field">
+      <label class="field-label" for="codeIn">Teamcode (van de begeleiders)</label>
+      <input id="codeIn" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Bijvoorbeeld 1010">
+      <p class="error" id="loginErr" hidden></p>
     </div>
-    <div class="progress" aria-hidden="true"><span id="progressFill"></span></div>
-  </header>
+    <div class="field">
+      <label class="field-label" for="nameIn">Jullie teamnaam (mag je zelf verzinnen)</label>
+      <input id="nameIn" maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld The Craic Dealers">
+    </div>
+    <button type="button" class="btn primary block" id="loginBtn">Aan de slag</button>
+    <p class="fine">Begeleider? Ga naar <a href="begeleiders/">het dashboard</a>.</p>
+  </section>
 
-  <main>
-    <section id="viewList" aria-label="Opdrachten">
-      <div class="tools">
-        <div class="hint" id="hint">
-          <p><b>Voor de start:</b> <span id="hintDub">kies je dubbel-opdracht met ×2.</span> Start daarna de klok.</p>
-          <button type="button" class="btn small primary" id="hintStart">Start klok</button>
-        </div>
-        <div class="seg" role="group" aria-label="Laat zien">
-          <button type="button" data-filter="open" aria-pressed="false">Open <span class="n" id="nOpen">76</span></button>
-          <button type="button" data-filter="done" aria-pressed="false">Gedaan <span class="n" id="nDone">0</span></button>
-          <button type="button" data-filter="all" aria-pressed="true">Alles <span class="n" id="nAll">76</span></button>
-        </div>
-        <label class="search" for="q">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg>
-          <span class="visually-hidden">Zoek een opdracht</span>
-          <input id="q" type="search" placeholder="Zoek op woord of nummer" autocomplete="off" enterkeyhint="search">
-        </label>
-        <nav class="cats" id="cats" aria-label="Spring naar categorie"></nav>
-      </div>
-      <div id="list"></div>
-      <p class="empty" id="empty" hidden></p>
-    </section>
-
-    <section id="viewScore" aria-label="Stand" hidden>
-      <div class="score-hero">
-        <div>
-          <p class="eyebrow">Stand <span id="standTeam"></span></p>
-          <p class="total" id="total">0</p>
-        </div>
-        <div class="hero-side">
-          <p><b id="standDone">0</b> van 76 gedaan</p>
-          <p id="standClock">Klok nog niet gestart</p>
-        </div>
-      </div>
-
-      <ul class="ledger">
-        <li>
-          <div class="lab-wrap"><span class="lab">Opdrachten</span><span class="sub" id="lgBaseSub">0 opdrachten afgevinkt</span></div>
-          <span class="val" id="lgBase">0</span>
-        </li>
-        <li>
-          <div class="lab-wrap"><span class="lab">Dubbel of niks</span><span class="sub" id="lgDubSub">Kies er een met ×2 in de lijst</span></div>
-          <span class="val" id="lgDub">0</span>
-        </li>
-        <li>
-          <div class="lab-wrap">
-            <span class="lab">Jurybonus</span>
-            <span class="sub">Legendarische uitvoering, maximaal 5</span>
-            <div class="stepper">
-              <button type="button" data-step="jury" data-d="-1" aria-label="Jurybonus min 1">−</button>
-              <output id="juryOut">0</output>
-              <button type="button" data-step="jury" data-d="1" aria-label="Jurybonus plus 1">+</button>
-            </div>
-          </div>
-          <span class="val" id="lgJury">0</span>
-        </li>
-        <li>
-          <div class="lab-wrap">
-            <label class="lab" for="darts">Darts of pool gewonnen</label>
-            <span class="sub" id="lgDartsSub">Telt als opdracht 58 is afgevinkt</span>
-            <input type="checkbox" id="darts" class="switch">
-          </div>
-          <span class="val" id="lgDarts">0</span>
-        </li>
-        <li>
-          <div class="lab-wrap"><span class="lab">Te laat</span><span class="sub" id="lgLateSub">−3 per begonnen 5 minuten</span></div>
-          <span class="val" id="lgLate">0</span>
-        </li>
-        <li>
-          <div class="lab-wrap">
-            <span class="lab">Overige straffen</span>
-            <span class="sub">Taxi −10 · nep-bewijs −10 · nee niet gehoord −5</span>
-            <div class="stepper">
-              <button type="button" data-step="penalty" data-d="-5" aria-label="Straf 5 punten minder">−</button>
-              <output id="penOut">0</output>
-              <button type="button" data-step="penalty" data-d="5" aria-label="Straf 5 punten erbij">+</button>
-            </div>
-          </div>
-          <span class="val" id="lgPen">0</span>
-        </li>
-        <li class="sum">
-          <div class="lab-wrap"><span class="lab">Totaal</span><span class="sub" id="lgHalf">Het andere team keurt alles nog goed</span></div>
-          <span class="val" id="lgTotal">0</span>
-        </li>
-      </ul>
-
-      <div class="actions">
-        <button type="button" class="btn primary" id="finishBtn">We zijn binnen</button>
-        <button type="button" class="btn ghost" id="shareBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6"/></svg>
-          Deel de stand
+  <div id="main" hidden>
+    <header class="top" id="top">
+      <div class="brand-row">
+        <p class="brand"><span class="wordmark">Crazy <span class="gold">76</span></span><span class="city">Dublin</span></p>
+        <button type="button" class="team-btn" id="teamBtn" aria-label="Team en instellingen">
+          <span id="teamName">Team</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
         </button>
       </div>
+      <div class="stats">
+        <p class="stat us"><span class="big" id="usPts">0</span><span class="unit">Jullie</span></p>
+        <p class="stat them"><span class="big" id="themPts">0</span><span class="unit" id="themName">Zij</span></p>
+        <div class="timer" id="timer" data-phase="idle" role="status">
+          <span class="timer-label" id="timerLabel">Wacht op start</span>
+          <span class="timer-value" id="timerValue">3:00:00</span>
+        </div>
+      </div>
+      <p class="subline"><span id="subline">0 gedaan</span><span id="leadline" class="lead"></span></p>
+      <div class="progress-top" aria-hidden="true"><span id="progressFill"></span></div>
+    </header>
 
-      <h3 class="section-label">Per categorie</h3>
-      <div class="cats-score" id="catsScore"></div>
-      <p class="fine">Dit is jullie eigen telling op deze telefoon. Bij de jury-ronde telt wat het andere team goedkeurt.</p>
-    </section>
-  </main>
+    <main>
+      <section id="viewList" aria-label="Opdrachten">
+        <div class="tools">
+          <div class="notice gold" id="dubNotice" hidden></div>
+          <div class="notice grey" id="waitNotice" hidden></div>
+          <div class="seg" role="group" aria-label="Laat zien">
+            <button type="button" data-filter="open" aria-pressed="false">Open <span class="n" id="nOpen">76</span></button>
+            <button type="button" data-filter="pending" aria-pressed="false">Wacht <span class="n" id="nPending">0</span></button>
+            <button type="button" data-filter="done" aria-pressed="false">Klaar <span class="n" id="nDone">0</span></button>
+            <button type="button" data-filter="all" aria-pressed="true">Alles</button>
+          </div>
+          <label class="search" for="q">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg>
+            <span class="visually-hidden">Zoek een opdracht</span>
+            <input id="q" type="search" placeholder="Zoek op woord of nummer" autocomplete="off" enterkeyhint="search">
+          </label>
+          <nav class="cats" id="cats" aria-label="Spring naar categorie"></nav>
+        </div>
+        <div id="list"></div>
+        <p class="empty" id="empty" hidden></p>
+      </section>
 
-  <nav class="tabbar" aria-label="Weergave">
-    <button type="button" data-view="list" aria-pressed="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>
-      Opdrachten
-    </button>
-    <button type="button" data-view="score" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>
-      Stand
-    </button>
-  </nav>
+      <section id="viewStand" class="stand" aria-label="Stand" hidden>
+        <div class="vs" id="vs"></div>
+        <p class="verdict" id="verdict"></p>
+        <p class="h-cat section-label">Jullie punten</p>
+        <ul class="ledger" id="ledger"></ul>
+        <p class="h-cat section-label">Per categorie</p>
+        <div class="cats-score" id="catsScore"></div>
+        <p class="fine">De begeleiders keuren ieder bewijs goed of af. Wat zij beslissen, telt.</p>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="Weergave">
+      <button type="button" data-view="list" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>
+        Opdrachten
+      </button>
+      <button type="button" data-view="stand" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>
+        Stand
+      </button>
+    </nav>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite">
     <span id="toastText"></span>
-    <button type="button" id="toastAction" hidden>Ongedaan maken</button>
+    <button type="button" id="toastAction" hidden></button>
   </div>
 
-  <dialog id="settings" aria-labelledby="setTitle">
+  <dialog id="taskDlg" class="task-dlg" aria-labelledby="taskTitle">
+    <div class="sheet" id="taskBody"></div>
+  </dialog>
+
+  <dialog id="dubDlg" aria-labelledby="dubTitle">
     <form method="dialog" class="sheet">
-      <div class="sheet-head">
-        <h2 id="setTitle">Team en klok</h2>
-        <button class="icon-btn" value="close" aria-label="Sluiten">×</button>
+      <div class="sheet-head"><h2 id="dubTitle">Dubbel of niks</h2><button class="icon-btn" value="cancel" aria-label="Sluiten">×</button></div>
+      <p id="dubText"></p>
+      <p class="notice gold"><b>Let op:</b> dit kan maar één keer. Daarna ligt de keuze vast, ook voor de begeleiders.</p>
+      <div class="grid2">
+        <button class="btn ghost" value="cancel">Toch niet</button>
+        <button class="btn gold" value="ok" id="dubOk">Ja, deze telt dubbel</button>
       </div>
-      <div class="field">
-        <label class="field-label" for="teamInput">Teamnaam</label>
-        <input id="teamInput" maxlength="30" autocomplete="off" placeholder="Bijvoorbeeld The Craic Dealers">
-      </div>
-      <div class="field">
-        <label class="field-label" for="durInput">Speelduur</label>
-        <select id="durInput">
-          <option value="120">2 uur</option>
-          <option value="150">2,5 uur</option>
-          <option value="180">3 uur</option>
-          <option value="240">4 uur</option>
-        </select>
-      </div>
-      <div class="field">
-        <span class="field-label">Klok</span>
-        <p id="clockStatus">Nog niet gestart.</p>
-        <button type="button" class="btn primary" id="clockStart">Start de klok</button>
-        <button type="button" class="btn ghost" id="clockReset" hidden>Klok op nul zetten</button>
-      </div>
-      <div class="field">
-        <span class="field-label">Opnieuw beginnen</span>
-        <button type="button" class="btn danger" id="wipeBtn">Alles wissen</button>
-      </div>
-      <p class="fine">Alles wordt alleen op deze telefoon bewaard. Spreek per team af wie de lijst bijhoudt.</p>
     </form>
   </dialog>
+
+  <dialog id="teamDlg" aria-labelledby="teamTitle">
+    <form method="dialog" class="sheet">
+      <div class="sheet-head"><h2 id="teamTitle">Jullie team</h2><button class="icon-btn" value="close" aria-label="Sluiten">×</button></div>
+      <div class="field">
+        <label class="field-label" for="teamNameIn">Teamnaam</label>
+        <input id="teamNameIn" maxlength="24" autocomplete="off">
+      </div>
+      <p class="fine" id="teamInfo"></p>
+      <button type="button" class="btn ghost" id="logoutBtn">Ander team kiezen</button>
+    </form>
+  </dialog>
+
+  <dialog id="lightbox" class="lightbox" aria-label="Bewijs bekijken">
+    <div class="sheet">
+      <div class="sheet-head"><h2 id="lbTitle">Bewijs</h2><button type="button" class="icon-btn" id="lbClose" aria-label="Sluiten">×</button></div>
+      <div id="lbBody"></div>
+    </div>
+  </dialog>
+
+  <input type="file" id="fileIn" accept="image/*,video/*" multiple hidden>
+  <input type="file" id="audioIn" accept="audio/*" hidden>
 </div>
 
-<script>
-(() => {
-  const SECTIONS = [{"title":"Dublin-klassiekers","note":"","items":[{"nr":1,"text":"**Molly Malone** (Suffolk Street): maak een groepsfoto waarop jullie met z'n allen haar kar een zetje geven.","proof":"Foto","pts":1},{"nr":2,"text":"**Ha'penny Bridge:** iedereen houdt midden op de brug zijn kleinste muntje omhoog en kijkt er zo arm mogelijk bij.","proof":"Foto","pts":1},{"nr":3,"text":"**The Spire** (O'Connell Street): maak een perspectieffoto waarop het lijkt alsof een teamlid de naald als tandenstoker gebruikt.","proof":"Foto","pts":2},{"nr":4,"text":"**Phil Lynott-standbeeld** (Harry Street, zijstraat van Grafton Street): speel luchtgitaar naast hem alsof jullie zijn band zijn.","proof":"Video","pts":2},{"nr":5,"text":"**Oscar Wilde-beeld** (Merrion Square): neem naast het beeld allemaal tegelijk precies zijn luie houding aan.","proof":"Foto","pts":2},{"nr":6,"text":"**Beeld “Meeting Place”** (twee vrouwen op een bankje, Liffey Street Lower): ga erbij zitten en roddel 20 seconden mee over het andere team.","proof":"Video","pts":2},{"nr":7,"text":"**The Brazen Head** (Bridge Street Lower, sinds 1198): poseer bij het jaartal alsof jullie de oprichters zijn, zo oud en krakkemikkig mogelijk.","proof":"Foto","pts":2},{"nr":8,"text":"**St James's Gate** (Guinness): maak een foto voor de poort alsof jullie komen solliciteren, met een bierviltje als cv.","proof":"Foto","pts":3},{"nr":9,"text":"**Langs de Liffey:** maak een perspectieffoto waarop het lijkt alsof een teamlid een meeuw uit de lucht plukt.","proof":"Foto","pts":3},{"nr":10,"text":"**Luas:** maak in een rijdende tram een groepsfoto waarop iedereen doet alsof het een achtbaan is (armen omhoog, mond open).","proof":"Foto","pts":2},{"nr":11,"text":"**Dublin Bus:** ga op de bovenste verdieping helemaal vooraan zitten en film 20 seconden waarin jullie de bus “besturen”, inclusief toeter- en knipperlichtgeluiden.","proof":"Video","pts":2},{"nr":12,"text":"Vind een **straatnaambord met de Ierse naam** erop en spreek die voor de camera zo zelfverzekerd mogelijk uit.","proof":"Video","pts":1},{"nr":13,"text":"Vind **drie Georgiaanse voordeuren** in drie verschillende kleuren (rond Merrion Square) en poseer bij elke deur alsof je aanbelt bij je nieuwe huis.","proof":"Foto","pts":2},{"nr":14,"text":"Spot **vijf klavertjes (shamrocks)** op uithangborden, etalages of kleding. Eén foto per klavertje, met een teamlid erbij.","proof":"Foto","pts":1},{"nr":15,"text":"Vind **het getal 76** op drie verschillende plekken in de stad: huisnummer, busnummer, prijskaartje, verkeersbord…","proof":"Foto","pts":2},{"nr":16,"text":"Koop een **ansichtkaart** en post hem in een groene An Post-brievenbus, gericht aan iemand thuis. Foto van het moment van posten.","proof":"Foto","pts":2}]},{"title":"Wildvreemden","note":"","items":[{"nr":17,"text":"Laat een Ier jullie **een zin in het Iers** (Gaeilge) aanleren en zeg die daarna met het hele team in koor op.","proof":"Video","pts":2},{"nr":18,"text":"Laat een local uitleggen wat **“craic”** betekent. Leg jij in ruil uit wat “gezellig” is.","proof":"Video","pts":2},{"nr":19,"text":"Laat een Ier **“Scheveningen”** uitspreken.","proof":"Video","pts":1},{"nr":20,"text":"Vind iemand in een **GAA-shirt** (hurling of Gaelic football) en laat die in 30 seconden uitleggen hoe het spel werkt.","proof":"Video","pts":3},{"nr":21,"text":"Vind een wildvreemde met **dezelfde voornaam** als een van jullie teamleden. Die persoon zegt zijn of haar naam op video.","proof":"Video","pts":4},{"nr":22,"text":"Laat **vijf mensen van vijf verschillende nationaliteiten** “hallo” in hun eigen taal op de arm van een teamlid schrijven.","proof":"Foto","pts":4},{"nr":23,"text":"Speel een nummer mee met een **straatmuzikant** op een zelfbedacht instrument (lepels, lege fles, bekertje). Eerst netjes toestemming vragen.","proof":"Video","pts":3},{"nr":24,"text":"Maak een foto met een **Garda** (Ierse agent). Alleen met toestemming en als ze niet druk bezig zijn.","proof":"Foto","pts":4},{"nr":25,"text":"Vraag iemand **boven de 70** wat het beste advies is dat die ooit heeft gekregen.","proof":"Video","pts":3},{"nr":26,"text":"Vraag toeristen van **drie verschillende continenten** welk gerecht je in hun land absoluut moet eten.","proof":"Video","pts":3},{"nr":27,"text":"Speel het **weerbericht van RTÉ** na, met een wildvreemde als weerman of weervrouw.","proof":"Video","pts":3},{"nr":28,"text":"Vraag een local in de pub om **een Ierse mop** te vertellen. Het hele team lacht zo overdreven mogelijk.","proof":"Video","pts":2},{"nr":29,"text":"Laat een wildvreemde op een bierviltje **een portret van jullie team** tekenen.","proof":"Foto","pts":2},{"nr":30,"text":"Laat een wildvreemde scheidsrechter zijn bij een **staredown** tussen twee teamleden: wie het eerst lacht, verliest.","proof":"Video","pts":2},{"nr":31,"text":"Maak een groepsfoto met **minimaal 15 wildvreemden** erop, die allemaal “Sláinte!” roepen.","proof":"Foto","pts":5},{"nr":32,"text":"Vind **een andere Nederlander of Belg** in Dublin en maak samen een foto met iets oranjes erop.","proof":"Foto","pts":3}]},{"title":"Lef & gênant","note":"","items":[{"nr":33,"text":"Loop 50 meter over de keien van Temple Bar als een **Riverdance-rij**: armen stijf langs je lichaam, alleen de benen doen mee.","proof":"Video","pts":3},{"nr":34,"text":"Doe midden op Grafton Street een **huwelijksaanzoek** op één knie, met een ring van een blikjeslipje. Minimaal één voorbijganger moet klappen.","proof":"Video","pts":3},{"nr":35,"text":"Vraag in een souvenirwinkel of ze nog **echt leprechaungoud** hebben en onderhandel over de prijs.","proof":"Video","pts":2},{"nr":36,"text":"Bestel bij een chipper of Supermac's je complete bestelling **zingend**.","proof":"Video","pts":3},{"nr":37,"text":"Loop een **catwalk over een zebrapad** (alleen als het voetgangerslicht groen is), met live modecommentaar van een teamlid.","proof":"Video","pts":2},{"nr":38,"text":"Vraag in een **apotheek** of ze iets hebben tegen “de kater van morgen” en of je dat nu alvast preventief kunt innemen.","proof":"Video","pts":2},{"nr":39,"text":"Lees in een **boekwinkel** een pagina uit een willekeurig boek voor alsof het live voetbalcommentaar is.","proof":"Video","pts":2},{"nr":40,"text":"Maak een kartonnen bord **“FREE HUGS FROM THE NETHERLANDS”** en scoor minimaal drie knuffels van vreemden.","proof":"Video","pts":3},{"nr":41,"text":"Vraag bij de receptie van een **chic hotel** met een uitgestreken gezicht of “jullie vaste suite” al klaarstaat.","proof":"Video","pts":3},{"nr":42,"text":"Doe alsof een teamlid jarig is en krijg **minimaal vijf vreemden** zover dat ze “Happy Birthday” zingen.","proof":"Video","pts":4},{"nr":43,"text":"Draag een teamlid **op je rug** over de volledige O'Connell Bridge. Wisselen mag niet.","proof":"Video","pts":3},{"nr":44,"text":"Bestel een koffie op de naam **“Bono”** en roep keihard “That's me!” als hij klaar is.","proof":"Video","pts":1},{"nr":45,"text":"Houd midden op **Meeting House Square** (Temple Bar) een peptalk als een voetbaltrainer vlak voor de finale. Minstens 30 seconden, met stemverheffing.","proof":"Video","pts":1}]},{"title":"Creatief","note":"","items":[{"nr":46,"text":"Maak een **reclamespotje** van 30 seconden voor een product dat niet bestaat: Guinness-tandpasta.","proof":"Video","pts":3},{"nr":47,"text":"Maak de **albumhoes** van een Ierse artiest of band na (U2, The Cranberries, Thin Lizzy, Westlife…). Zet het origineel ernaast.","proof":"Foto","pts":3},{"nr":48,"text":"Speel **een scène uit een Ierse film of serie** na (Derry Girls, Father Ted, The Commitments…).","proof":"Video","pts":3},{"nr":49,"text":"Schrijf een **limerick** over het andere team (vijf regels, rijm AABBA) en draag hem voor op de trappen van een monument.","proof":"Video","pts":3},{"nr":50,"text":"Film een **natuurdocumentaire** van 30 seconden, met fluisterstem à la David Attenborough, over een teamlid dat aan de bar een pint bestelt.","proof":"Video","pts":2},{"nr":51,"text":"Maak een **filmtrailer** van maximaal 45 seconden over jullie weekend, beginnend met “In a world…”.","proof":"Video","pts":4},{"nr":52,"text":"Vorm met jullie lichamen de letters **C-R-A-I-C** (mag verdeeld over meerdere foto's).","proof":"Foto","pts":2},{"nr":53,"text":"Bouw aan een bartafel een **kaartenhuis van bierviltjes** van minimaal drie verdiepingen.","proof":"Foto","pts":2},{"nr":54,"text":"Leg **de Ierse vlag** (groen, wit, oranje) na met alleen eten.","proof":"Foto","pts":2},{"nr":55,"text":"Zoek een **muurschildering of street art** en ga zo staan dat jullie onderdeel van het kunstwerk worden.","proof":"Foto","pts":2}]},{"title":"Kroeg & drank","note":"alcoholvrij mag ook","items":[{"nr":56,"text":"Vraag de barman om **een klavertje in het schuim** van je Guinness te tekenen.","proof":"Foto","pts":2},{"nr":57,"text":"Film **de perfecte pour** van een Guinness, van tap tot toonbank, met de tijd erbij. Laat de barman uitleggen waarom het in twee keer gaat.","proof":"Video","pts":2},{"nr":58,"text":"Daag locals uit voor een potje **darts of pool**. Winnen levert 2 bonuspunten op.","proof":"Video","pts":3},{"nr":59,"text":"Vraag in een pub met **livemuziek** of de band de naam van jullie team omroept.","proof":"Video","pts":3},{"nr":60,"text":"Bestel een **hot whiskey** (whiskey, heet water, citroen, kruidnagel) en laat de barman uitleggen waarom Ieren zweren dat het tegen verkoudheid helpt.","proof":"Video","pts":2},{"nr":61,"text":"Zoek een pub met een **snug** (afgesloten zitje) en houd daar een geheime teamvergadering, iedereen met een zonnebril op.","proof":"Foto","pts":2},{"nr":62,"text":"Vraag om **de wifi-code** en krijg de barman zover dat die hem zingend opzegt.","proof":"Video","pts":3},{"nr":63,"text":"Leg een stapeltje **bierviltjes** over de rand van de tafel, tik ze omhoog en vang ze in één beweging. Vijf tegelijk = geslaagd.","proof":"Video","pts":3},{"nr":64,"text":"Eet een **chip butty** (friet op een beboterde boterham) of een **spice bag**.","proof":"Foto","pts":1},{"nr":65,"text":"Vind in een Ierse supermarkt **een Nederlands product** en maak er een zo emotioneel mogelijke heimweefoto mee.","proof":"Foto","pts":1}]},{"title":"Sport & actie","note":"","items":[{"nr":66,"text":"Doe met het team samen **76 push-ups** op een openbare plek. Verdelen mag, het totaal telt.","proof":"Video","pts":2},{"nr":67,"text":"Houd een **kruiwagenrace** (twee teamleden tegen twee) over het gras van St Stephen's Green.","proof":"Video","pts":2},{"nr":68,"text":"**Hink** met z'n allen in een polonaise, handen op elkaars schouders, de Millennium Bridge over.","proof":"Video","pts":2},{"nr":69,"text":"Vorm een **menselijke tunnel** en krijg een wildvreemde zover dat die erdoorheen loopt (of kruipt).","proof":"Video","pts":3},{"nr":70,"text":"Organiseer in een park jullie eigen **Olympische Spelen**: drie onderdelen, en de winnaar krijgt een medaille van een bierdopje.","proof":"Video","pts":3}]},{"title":"Tegen het andere team","note":"","items":[{"nr":71,"text":"Maak een foto van **het andere team** terwijl ze een opdracht doen, zonder dat ze het doorhebben.","proof":"Foto","pts":3},{"nr":72,"text":"Laat een wildvreemde een **spraakbericht** inspreken voor het andere team: “Good luck, you're going to lose.” Stuur het naar ze.","proof":"Audio","pts":3},{"nr":73,"text":"“Ontvoer” een klein voorwerp van het andere team (bierviltje, zonnebril, pet) en maak er een **gijzelingsfoto** mee. Na afloop teruggeven.","proof":"Foto","pts":4},{"nr":74,"text":"**Doe het andere team na:** ieder teamlid imiteert één lid van het andere team, in een video van maximaal 30 seconden.","proof":"Video","pts":3},{"nr":75,"text":"Maak **samen met het andere team** een groepsfoto waarop iedereen de jas of het shirt van iemand anders draagt.","proof":"Foto","pts":3}]},{"title":"Finale","note":"","items":[{"nr":76,"text":"**De Crazy 76-foto:** één groepsfoto waarop minstens tien opdrachten van deze lijst terugkomen (voorwerpen, poses, bordjes). Gemaakt vóór de eindtijd.","proof":"Foto","pts":5}]}];
+<script src="shared/tasks.js"></script>
+<script src="shared/rules.js"></script>
+<script src="shared/config.js"></script>
+<script type="module">
+import { createBackend, prepareMedia } from './shared/backend.js';
 
-  const KEY = 'crazy76-dublin-v1';
-  const DEFAULTS = { done: {}, dub: null, team: '', duration: 180, startAt: null, finishAt: null, jury: 0, darts: false, penalty: 0, filter: 'all', view: 'list' };
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const $ = id => document.getElementById(id);
+const C = window.C76, R = C.RULES, F = C.fmt;
+const $ = id => document.getElementById(id);
+const other = t => t === 'A' ? 'B' : 'A';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const icon = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  Foto: icon('<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+  Video: icon('<rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 11l6-3v8l-6-3"/>'),
+  Audio: icon('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+  check: icon('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3),
+  x: icon('<path d="M6 6l12 12M18 6L6 18"/>', 3),
+  clock: icon('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  send: icon('<path d="M4 12l16-7-5 16-3-6z"/>'),
+  plus: icon('<path d="M12 5v14M5 12h14"/>', 2.5),
+  play: icon('<path d="M8 5l11 7-11 7z"/>'),
+  mic: icon('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+};
+const STATUS_LABEL = { open: 'Insturen', pending: 'Wacht', approved: 'Goed', rejected: 'Afgekeurd' };
 
-  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const rich = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
-  const pad = n => String(n).padStart(2, '0');
-  const hhmm = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-  const hms = ms => { const t = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(t / 3600)}:${pad(Math.floor(t % 3600 / 60))}:${pad(t % 60)}`; };
-  const durText = min => min % 60 ? `${Math.floor(min / 60)},5 uur` : `${min / 60} uur`;
-  const signed = v => v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : '0';
+// ---------- Lokale voorkeuren van deze telefoon ----------
+const LS = 'c76-team';
+function load() { try { return Object.assign({ team: null, code: '', filter: 'all', view: 'list', seen: null }, JSON.parse(localStorage.getItem(LS)) || {}); } catch (e) { return { team: null, code: '', filter: 'all', view: 'list', seen: null }; } }
+function save() { try { localStorage.setItem(LS, JSON.stringify(P)); } catch (e) {} }
+let P = load();
 
-  const TASKS = [];
-  SECTIONS.forEach((s, ci) => {
-    s.max = s.items.reduce((a, t) => a + t.pts, 0);
-    s.items.forEach(t => TASKS.push(Object.assign({}, t, { cat: ci, search: norm(t.text.replace(/\*\*/g, '')) })));
-  });
-  const BY_NR = new Map(TASKS.map(t => [t.nr, t]));
-  const MAX = TASKS.reduce((a, t) => a + t.pts, 0);
+let backend = null, state = null, teams = null, subs = [], inMain = false, listBuilt = false;
+const ROWS = new Map();
 
-  function load() {
-    const base = JSON.parse(JSON.stringify(DEFAULTS));
-    try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(base, JSON.parse(raw)); } catch (e) {}
-    return base;
+// ---------- Meldingen ----------
+let toastTimer = 0, toastFn = null;
+function toast(text, actionLabel, fn, ms = 4500) {
+  $('toastText').textContent = text;
+  const b = $('toastAction');
+  b.hidden = !actionLabel; b.textContent = actionLabel || '';
+  toastFn = fn || null;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, ms);
+}
+function hideToast() { $('toast').classList.remove('show'); toastFn = null; }
+$('toastAction').addEventListener('click', () => { const fn = toastFn; hideToast(); if (fn) fn(); });
+const buzz = ms => { if (navigator.vibrate) navigator.vibrate(ms); };
+
+function show(which) {
+  $('viewWait').hidden = which !== 'wait';
+  $('viewSetup').hidden = which !== 'setup';
+  $('viewLogin').hidden = which !== 'login';
+  $('main').hidden = which !== 'main';
+  inMain = which === 'main';
+}
+
+// ---------- Start ----------
+async function boot() {
+  try {
+    backend = await createBackend(window.C76_CONFIG && window.C76_CONFIG.firebase);
+  } catch (e) {
+    show('setup');
+    return;
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-  let S = load();
+  if (backend.mode === 'mock') document.body.classList.add('mock');
+  setTimeout(() => { if (!state || !teams) $('waitText').textContent = 'Dit duurt langer dan normaal. Controleer of je internet hebt; de app probeert het vanzelf opnieuw.'; }, 8000);
+  try { await backend.ensureDefaults(); } catch (e) { console.warn('Standaardwaarden niet gezet', e); }
+  backend.subscribe({
+    onState: s => { state = s; onData(); },
+    onTeams: t => { teams = t; onData(); },
+    onSubmissions: list => { subs = list; onData(); },
+    onError: e => { console.error(e); toast('Verbinding met de spelserver mislukt. Controleer je internet.', null, null, 8000); },
+  });
+}
 
-  const icon = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-  const ICON = {
-    Foto: icon('<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
-    Video: icon('<rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 11l6-3v8l-6-3"/>'),
-    Audio: icon('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
-    check: icon('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3),
-  };
+function loggedIn() { return P.team && teams && teams[P.team] && String(teams[P.team].code) === String(P.code); }
 
-  // ---------- Lijst opbouwen ----------
-  const rowHTML = t => `
-    <article class="task" id="t${t.nr}" data-nr="${t.nr}">
-      <span class="nr" aria-hidden="true">${t.nr}</span>
-      <div class="body">
-        <p class="text"><span class="visually-hidden">Opdracht ${t.nr}: </span>${rich(t.text)}</p>
-        <div class="meta">
-          <span class="proof">${ICON[t.proof]}${t.proof}</span>
-          <span class="pts" role="img" aria-label="${t.pts} ${t.pts === 1 ? 'punt' : 'punten'}">${[1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : ''}"></i>`).join('')}<b aria-hidden="true">${t.pts} pt</b></span>
-          <button type="button" class="dub" data-dub="${t.nr}" aria-pressed="false" aria-label="Opdracht ${t.nr} dubbel laten tellen">×2</button>
-        </div>
+function onData() {
+  if (!state || !teams) return;
+  if (!loggedIn()) {
+    if (inMain) toast('Jullie teamcode is veranderd. Log opnieuw in.');
+    paintLogin();
+    show('login');
+    return;
+  }
+  if (!inMain) { show('main'); if (!listBuilt) buildList(); setView(P.view, false); }
+  paintAll();
+  checkEvents();
+}
+
+// ---------- Inloggen ----------
+let pickedTeam = null;
+function paintLogin() {
+  $('pickNameA').textContent = teams.A ? teams.A.name : 'Team 1';
+  $('pickNameB').textContent = teams.B ? teams.B.name : 'Team 2';
+}
+$('teamPick').addEventListener('click', e => {
+  const b = e.target.closest('[data-team]');
+  if (!b) return;
+  pickedTeam = b.dataset.team;
+  document.querySelectorAll('[data-team]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('nameIn').value = teams[pickedTeam].name || '';
+  $('codeIn').focus();
+});
+$('loginBtn').addEventListener('click', async () => {
+  const err = $('loginErr');
+  err.hidden = true;
+  if (!pickedTeam) { err.textContent = 'Kies eerst je team.'; err.hidden = false; return; }
+  const code = $('codeIn').value.trim();
+  if (String(teams[pickedTeam].code) !== code) { err.textContent = 'Die code klopt niet. Vraag de begeleiders om de teamcode.'; err.hidden = false; return; }
+  P.team = pickedTeam; P.code = code; P.seen = null; save();
+  const name = $('nameIn').value.trim().slice(0, 24);
+  if (name && name !== teams[pickedTeam].name) {
+    try { await backend.setTeam(pickedTeam, { name }); backend.log({ type: 'name', team: pickedTeam, text: `Team heet nu “${name}”` }); } catch (e) {}
+  }
+  onData();
+});
+$('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+// ---------- Lijst ----------
+const rowHTML = t => `
+  <article class="task" id="t${t.nr}" data-nr="${t.nr}">
+    <span class="nr" aria-hidden="true">${t.nr}</span>
+    <div class="body">
+      <p class="text"><span class="visually-hidden">Opdracht ${t.nr}: </span>${C.rich(t.text)}</p>
+      <div class="meta">
+        <span class="proof">${ICON[t.proof]}${t.proof}</span>
+        <span class="pips" role="img" aria-label="${t.pts} ${t.pts === 1 ? 'punt' : 'punten'}">${[1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : ''}"></i>`).join('')}<b class="pts-b" aria-hidden="true">${t.pts} pt</b></span>
+        <span class="dubslot"></span>
       </div>
-      <button type="button" class="check" aria-pressed="false" aria-label="Opdracht ${t.nr} afvinken">${ICON.check}</button>
-    </article>`;
+    </div>
+    <div class="st"><span class="ico"></span><span class="lbl"></span></div>
+  </article>`;
 
-  const listEl = $('list');
-  listEl.innerHTML = SECTIONS.map((s, ci) => `
+function buildList() {
+  $('list').innerHTML = C.SECTIONS.map((s, ci) => `
     <section class="cat" id="cat-${ci}" aria-labelledby="cat-title-${ci}">
       <div class="cat-head">
-        <h2 id="cat-title-${ci}">${esc(s.title)}</h2>
+        <h2 class="h-cat" id="cat-title-${ci}">${C.esc(s.title)}</h2>
         <span class="cat-count" id="cat-count-${ci}"></span>
-        ${s.note ? `<p class="cat-note">${esc(s.note)}</p>` : ''}
+        ${s.note ? `<p class="cat-note">${C.esc(s.note)}</p>` : ''}
         <div class="bar" aria-hidden="true"><span id="cat-bar-${ci}"></span></div>
       </div>
       ${s.items.map(rowHTML).join('')}
     </section>`).join('');
-  $('cats').innerHTML = SECTIONS.map((s, ci) =>
-    `<button type="button" data-jump="${ci}">${esc(s.title)} <span class="c" id="chip-count-${ci}"></span></button>`).join('');
-  $('maxPts').textContent = MAX;
-
-  const ROWS = new Map(TASKS.map(t => [t.nr, $('t' + t.nr)]));
-
-  // ---------- Rekenen ----------
-  function compute(now = Date.now()) {
-    const done = TASKS.filter(t => S.done[t.nr]);
-    const base = done.reduce((a, t) => a + t.pts, 0);
-    const endAt = S.startAt ? S.startAt + S.duration * 60000 : null;
-    const dubT = S.dub ? BY_NR.get(S.dub) : null;
-    let dubVal = 0, dubState = 'none';
-    if (dubT) {
-      if (S.done[dubT.nr]) { dubVal = dubT.pts; dubState = 'hit'; }
-      else if (S.finishAt || (endAt && now >= endAt)) { dubVal = -dubT.pts; dubState = 'miss'; }
-      else dubState = 'open';
-    }
-    const darts = S.darts && S.done[58] ? 2 : 0;
-    let lateMin = 0;
-    if (endAt) {
-      const ref = S.finishAt || (now > endAt ? now : null);
-      if (ref && ref > endAt) lateMin = (ref - endAt) / 60000;
-    }
-    const latePen = lateMin > 0 ? Math.ceil(lateMin / 5) * 3 : 0;
-    const sub = base + dubVal + S.jury + darts - latePen - S.penalty;
-    const halved = lateMin > 30;
-    const total = halved ? Math.round(sub / 2) : sub;
-    return { done, base, endAt, dubT, dubVal, dubState, darts, lateMin, latePen, sub, halved, total };
-  }
-
-  // ---------- Tekenen ----------
-  function paintRow(nr) {
-    const row = ROWS.get(nr);
-    const done = !!S.done[nr];
-    row.classList.toggle('done', done);
-    const btn = row.querySelector('.check');
-    btn.setAttribute('aria-pressed', String(done));
-    btn.setAttribute('aria-label', done ? `Opdracht ${nr} weer openzetten` : `Opdracht ${nr} afvinken`);
-  }
-  function paintDub() {
-    ROWS.forEach((row, nr) => row.querySelector('.dub').setAttribute('aria-pressed', String(S.dub === nr)));
-  }
-  function setVal(id, v, text) {
-    const el = $(id);
-    el.textContent = text || signed(v);
-    el.classList.toggle('plus', v > 0);
-    el.classList.toggle('minus', v < 0);
-  }
-
-  function paintTimer(now = Date.now()) {
-    const btn = $('timerBtn');
-    let state, label, value, clock;
-    if (!S.startAt) {
-      state = 'idle'; label = 'Start klok'; value = hms(S.duration * 60000); clock = 'Klok nog niet gestart';
-    } else {
-      const endAt = S.startAt + S.duration * 60000;
-      if (S.finishAt) {
-        const late = S.finishAt > endAt;
-        state = late ? 'late' : 'done'; label = late ? 'Binnen · te laat' : 'Binnen'; value = hhmm(S.finishAt);
-        clock = `Binnen om ${hhmm(S.finishAt)}`;
-      } else if (now < endAt) {
-        const rem = endAt - now;
-        state = rem < 15 * 60000 ? 'soon' : 'run'; label = `Nog · eind ${hhmm(endAt)}`; value = hms(rem);
-        clock = `Nog ${hms(rem)} op de klok`;
-      } else {
-        state = 'late'; label = 'Te laat'; value = '+' + hms(now - endAt);
-        clock = `${Math.ceil((now - endAt) / 60000)} min over tijd`;
-      }
-    }
-    btn.dataset.state = state;
-    $('timerLabel').textContent = label;
-    $('timerValue').textContent = value;
-    btn.setAttribute('aria-label', `${label} ${value}. ${S.startAt ? 'Open team en klok' : 'Start de klok'}`);
-    $('standClock').textContent = clock;
-  }
-
-  function paintSummary() {
-    const now = Date.now();
-    const c = compute(now);
-    const n = c.done.length;
-
-    $('scoreNow').textContent = c.total;
-    $('doneNow').textContent = n;
-    $('progressFill').style.width = `${c.base / MAX * 100}%`;
-    $('teamName').textContent = S.team || 'Teamnaam';
-    $('teamBtn').classList.toggle('empty', !S.team);
-    $('nOpen').textContent = TASKS.length - n;
-    $('nDone').textContent = n;
-    $('nAll').textContent = TASKS.length;
-
-    const catRows = SECTIONS.map((s, ci) => {
-      const d = s.items.filter(t => S.done[t.nr]);
-      const pts = d.reduce((a, t) => a + t.pts, 0);
-      $(`cat-count-${ci}`).textContent = `${d.length}/${s.items.length} · ${pts}/${s.max} pt`;
-      $(`cat-bar-${ci}`).style.width = `${pts / s.max * 100}%`;
-      $(`chip-count-${ci}`).textContent = `${d.length}/${s.items.length}`;
-      return `<div class="cs"><span class="cs-name">${esc(s.title)}</span><span class="cs-num">${d.length}/${s.items.length} · <b>${pts}</b>/${s.max} pt</span><div class="bar" aria-hidden="true"><span style="width:${pts / s.max * 100}%"></span></div></div>`;
-    });
-    $('catsScore').innerHTML = catRows.join('');
-
-    $('total').textContent = c.total;
-    $('standTeam').textContent = S.team ? `· ${S.team}` : '';
-    $('standDone').textContent = n;
-    $('lgBase').textContent = c.base;
-    $('lgBaseSub').textContent = `${n} ${n === 1 ? 'opdracht' : 'opdrachten'} afgevinkt`;
-    setVal('lgDub', c.dubVal, c.dubState === 'open' ? `+${c.dubT.pts}?` : '');
-    $('lgDubSub').textContent = !c.dubT
-      ? (S.startAt ? 'Niet gekozen voor de start' : 'Kies er een met ×2 in de lijst')
-      : c.dubState === 'hit' ? `Opdracht ${c.dubT.nr} gelukt, telt dubbel`
-      : c.dubState === 'miss' ? `Opdracht ${c.dubT.nr} niet gelukt`
-      : `Opdracht ${c.dubT.nr}, nog niet gedaan`;
-    $('juryOut').textContent = S.jury;
-    setVal('lgJury', S.jury);
-    $('darts').checked = !!S.darts;
-    setVal('lgDarts', c.darts);
-    $('lgDartsSub').textContent = S.done[58] ? '+2 bovenop opdracht 58' : 'Telt als opdracht 58 is afgevinkt';
-    setVal('lgLate', -c.latePen);
-    $('lgLateSub').textContent = !S.startAt ? 'Start eerst de klok'
-      : c.lateMin > 0 ? `${Math.ceil(c.lateMin)} min te laat · −3 per begonnen 5 minuten`
-      : '−3 per begonnen 5 minuten';
-    $('penOut').textContent = S.penalty;
-    setVal('lgPen', -S.penalty);
-    $('lgTotal').textContent = c.total;
-    $('lgHalf').textContent = c.halved ? `Meer dan 30 min te laat: de helft van ${c.sub}` : 'Het andere team keurt alles nog goed';
-
-    const fin = $('finishBtn');
-    fin.disabled = !S.startAt;
-    fin.textContent = S.finishAt ? 'Toch nog niet binnen' : 'We zijn binnen';
-
-    $('hint').hidden = !!S.startAt;
-    document.querySelector('.app').classList.toggle('started', !!S.startAt);
-    $('hintDub').textContent = c.dubT ? `dubbel-opdracht is nr. ${c.dubT.nr}.` : 'kies je dubbel-opdracht met ×2.';
-    paintTimer(now);
-  }
-
-  function paintFilterButtons() {
-    document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === S.filter)));
-  }
-
-  function applyFilter() {
-    const raw = $('q').value.trim();
-    const q = norm(raw);
-    const isNum = /^\d+$/.test(q);
-    let visible = 0;
-    TASKS.forEach(t => {
-      const done = !!S.done[t.nr];
-      const okFilter = S.filter === 'all' || (S.filter === 'open' ? !done : done);
-      const okQuery = !q || (isNum ? String(t.nr) === q : t.search.includes(q));
-      const show = okFilter && okQuery;
-      ROWS.get(t.nr).hidden = !show;
-      if (show) visible++;
-    });
-    SECTIONS.forEach((s, ci) => { $(`cat-${ci}`).hidden = !s.items.some(t => !ROWS.get(t.nr).hidden); });
-    const empty = $('empty');
-    empty.hidden = visible > 0;
-    if (!visible) {
-      empty.textContent = raw ? `Geen opdracht gevonden voor “${raw}”.`
-        : S.filter === 'open' ? 'Alles is gedaan. Door naar de jury-ronde!'
-        : 'Nog niks afgevinkt. Tik op een opdracht zodra hij gelukt is.';
-    }
-  }
-
-  // ---------- Melding ----------
-  let toastTimer = 0, toastFn = null;
-  function toast(text, actionLabel, fn, ms = 4200) {
-    $('toastText').textContent = text;
-    const b = $('toastAction');
-    b.hidden = !actionLabel;
-    b.textContent = actionLabel || '';
-    toastFn = fn || null;
-    $('toast').classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, ms);
-  }
-  function hideToast() { $('toast').classList.remove('show'); toastFn = null; }
-  $('toastAction').addEventListener('click', () => { const fn = toastFn; hideToast(); if (fn) fn(); });
-
-  // ---------- Acties ----------
-  let filterTimer = 0;
-  function setDone(nr, value, ts) {
-    if (value) S.done[nr] = ts || Date.now(); else delete S.done[nr];
-    save();
-    paintRow(nr);
-    paintSummary();
-    clearTimeout(filterTimer);
-    filterTimer = setTimeout(applyFilter, S.filter === 'all' ? 0 : 700);
-  }
-
-  function toggleDone(nr) {
-    const prev = S.done[nr];
-    const t = BY_NR.get(nr);
-    setDone(nr, !prev);
-    if (!prev) {
-      const row = ROWS.get(nr);
-      row.classList.remove('stamp');
-      void row.offsetWidth;
-      row.classList.add('stamp');
-      if (navigator.vibrate) navigator.vibrate(12);
-      const gain = S.dub === nr ? `+${t.pts * 2} pt, dubbel` : `+${t.pts} pt`;
-      const all = Object.keys(S.done).length === TASKS.length;
-      const text = all ? 'Alle 76 gedaan. Sláinte!' : nr === 76 ? `De Crazy 76-foto is binnen (${gain}). Sláinte!` : `Opdracht ${nr} afgevinkt (${gain})`;
-      toast(text, 'Ongedaan maken', () => setDone(nr, false));
-    } else {
-      toast(`Opdracht ${nr} staat weer open`, 'Ongedaan maken', () => setDone(nr, true, prev));
-    }
-  }
-
-  function toggleDub(nr) {
-    if (S.startAt) {
-      toast(S.dub ? `De dubbel-opdracht (nr. ${S.dub}) ligt vast sinds de start` : 'Na de start kies je geen dubbel-opdracht meer');
-      return;
-    }
-    const prev = S.dub;
-    const t = BY_NR.get(nr);
-    S.dub = prev === nr ? null : nr;
-    save(); paintDub(); paintSummary();
-    const undo = () => { S.dub = prev; save(); paintDub(); paintSummary(); };
-    toast(S.dub ? `Opdracht ${nr} telt dubbel: gelukt +${t.pts * 2}, mislukt −${t.pts}` : `Opdracht ${nr} telt niet meer dubbel`, 'Ongedaan maken', undo, 5000);
-  }
-
-  listEl.addEventListener('click', e => {
-    const dub = e.target.closest('[data-dub]');
-    if (dub) { toggleDub(Number(dub.dataset.dub)); return; }
-    const row = e.target.closest('.task');
-    if (!row) return;
-    if (String(window.getSelection ? window.getSelection() : '').length) return;
-    toggleDone(Number(row.dataset.nr));
-  });
-
-  document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
-    S.filter = b.dataset.filter; save(); paintFilterButtons(); applyFilter();
-  }));
-  $('q').addEventListener('input', applyFilter);
-
-  $('cats').addEventListener('click', e => {
-    const b = e.target.closest('[data-jump]');
-    if (!b) return;
-    const sec = $(`cat-${b.dataset.jump}`);
-    if (sec.hidden) { toast(S.filter === 'open' ? 'Alles in deze categorie is al gedaan' : 'Niks zichtbaar in deze categorie'); return; }
-    sec.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-  });
-
-  function setView(v, scroll = true) {
-    S.view = v === 'score' ? 'score' : 'list';
-    save();
-    $('viewList').hidden = S.view !== 'list';
-    $('viewScore').hidden = S.view !== 'score';
-    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === S.view)));
-    if (scroll) window.scrollTo(0, 0);
-  }
-  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
-
-  document.addEventListener('click', e => {
-    const st = e.target.closest('[data-step]');
-    if (!st) return;
-    const d = Number(st.dataset.d);
-    if (st.dataset.step === 'jury') S.jury = Math.min(5, Math.max(0, S.jury + d));
-    if (st.dataset.step === 'penalty') S.penalty = Math.max(0, S.penalty + d);
-    save(); paintSummary();
-  });
-  $('darts').addEventListener('change', e => { S.darts = e.target.checked; save(); paintSummary(); });
-
-  $('finishBtn').addEventListener('click', () => {
-    if (!S.startAt) return;
-    S.finishAt = S.finishAt ? null : Date.now();
-    save(); paintSummary(); paintClockStatus();
-    if (S.finishAt) {
-      const c = compute();
-      toast(c.latePen ? `Binnen om ${hhmm(S.finishAt)}, ${Math.ceil(c.lateMin)} min te laat (−${c.latePen})` : `Binnen om ${hhmm(S.finishAt)}, keurig op tijd`);
-    }
-  });
-
-  function standText() {
-    const c = compute();
-    let clock = '';
-    if (S.finishAt) clock = ` · binnen om ${hhmm(S.finishAt)}`;
-    else if (S.startAt) { const rem = c.endAt - Date.now(); clock = rem > 0 ? ` · nog ${hms(rem)} op de klok` : ' · over tijd'; }
-    return `Crazy 76 · ${S.team || 'Ons team'}: ${c.done.length}/76 opdrachten, ${c.total} punten${clock}`;
-  }
-  $('shareBtn').addEventListener('click', async () => {
-    const text = standText();
-    if (navigator.share) {
-      try { await navigator.share({ text }); return; }
-      catch (err) { if (err && err.name === 'AbortError') return; }
-    }
-    try { await navigator.clipboard.writeText(text); toast('Stand gekopieerd. Plak hem in de groepsapp.'); }
-    catch (e) { toast(text, null, null, 9000); }
-  });
-
-  // ---------- Team en klok ----------
-  const dlg = $('settings');
-  function openSettings() {
-    $('teamInput').value = S.team;
-    $('durInput').value = String(S.duration);
-    paintClockStatus();
-    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
-  }
-  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
-  function paintClockStatus() {
-    const endAt = S.startAt ? S.startAt + S.duration * 60000 : null;
-    $('clockStatus').textContent = !S.startAt
-      ? `Nog niet gestart. Jullie spelen ${durText(S.duration)}.`
-      : `Gestart om ${hhmm(S.startAt)}, eindtijd ${hhmm(endAt)}.${S.finishAt ? ` Binnen om ${hhmm(S.finishAt)}.` : ''}`;
-    $('clockStart').hidden = !!S.startAt;
-    $('clockReset').hidden = !S.startAt;
-  }
-  function startClock() {
-    S.startAt = Date.now();
-    S.finishAt = null;
-    save(); paintSummary(); paintClockStatus();
-    toast(`De klok loopt. Om ${hhmm(S.startAt + S.duration * 60000)} moeten jullie binnen zijn.`);
-  }
-  function armed(btn, confirmText, fn) {
-    const original = btn.textContent;
-    let t = 0;
-    btn.addEventListener('click', () => {
-      if (btn.dataset.armed) {
-        clearTimeout(t); delete btn.dataset.armed; btn.textContent = original; fn();
-      } else {
-        btn.dataset.armed = '1'; btn.textContent = confirmText;
-        t = setTimeout(() => { delete btn.dataset.armed; btn.textContent = original; }, 3500);
-      }
-    });
-  }
-
-  $('teamBtn').addEventListener('click', openSettings);
-  $('timerBtn').addEventListener('click', () => {
-    if (!S.startAt) toast(`Klok starten? Jullie spelen ${durText(S.duration)}.`, 'Start', startClock, 6000);
-    else openSettings();
-  });
-  $('hintStart').addEventListener('click', startClock);
-  $('clockStart').addEventListener('click', startClock);
-  $('teamInput').addEventListener('input', e => { S.team = e.target.value.trim().slice(0, 30); save(); paintSummary(); });
-  $('durInput').addEventListener('change', e => { S.duration = Number(e.target.value); save(); paintSummary(); paintClockStatus(); });
-  armed($('clockReset'), 'Tik nog een keer: klok op nul', () => {
-    S.startAt = null; S.finishAt = null;
-    save(); paintSummary(); paintClockStatus();
-    toast('De klok staat weer op nul');
-  });
-  armed($('wipeBtn'), 'Tik nog een keer om alles te wissen', () => {
-    S = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), { team: S.team, duration: S.duration, view: S.view });
-    save();
-    ROWS.forEach((_, nr) => paintRow(nr));
-    paintDub(); paintFilterButtons(); applyFilter(); paintSummary(); paintClockStatus();
-    toast('Alle vinkjes, de klok en de bonussen zijn gewist');
-  });
-
-  setInterval(() => {
-    if (!S.startAt || S.finishAt) return;
-    const now = Date.now();
-    if (now >= S.startAt + S.duration * 60000) paintSummary(); else paintTimer(now);
-  }, 1000);
-
-  // ---------- Start ----------
-  ROWS.forEach((_, nr) => paintRow(nr));
-  paintDub();
+  $('cats').innerHTML = C.SECTIONS.map((s, ci) => `<button type="button" data-jump="${ci}">${C.esc(s.title)} <span class="c" id="chip-${ci}"></span></button>`).join('');
+  C.TASKS.forEach(t => ROWS.set(t.nr, $('t' + t.nr)));
+  listBuilt = true;
   paintFilterButtons();
-  applyFilter();
-  paintSummary();
-  setView(S.view, false);
+}
 
-  const top = $('top');
-  const setTop = () => document.documentElement.style.setProperty('--top-h', `${top.offsetHeight}px`);
-  setTop();
-  if ('ResizeObserver' in window) new ResizeObserver(setTop).observe(top);
-})();
+const mySub = nr => subs.find(s => s.team === P.team && s.nr === nr);
+const statusOf = nr => C.taskStatus(mySub(nr));
+const team = () => teams[P.team];
+function canPickDubbel() { return !team().dubbel && !state.startAt; }
+
+function paintRow(nr) {
+  const row = ROWS.get(nr);
+  const t = C.BY_NR.get(nr);
+  const st = statusOf(nr);
+  row.className = `task ${st}`;
+  const ico = row.querySelector('.ico'), lbl = row.querySelector('.lbl');
+  const s = mySub(nr);
+  const dub = team().dubbel === nr;
+  const pts = t.pts * (dub ? 2 : 1);
+  if (st === 'open') { ico.innerHTML = ICON.send; lbl.textContent = 'Insturen'; }
+  else if (st === 'pending') { ico.innerHTML = ICON.clock; lbl.textContent = 'Wacht'; }
+  else if (st === 'approved') { ico.innerHTML = ICON.check; lbl.textContent = `+${pts}`; }
+  else { ico.innerHTML = ICON.x; lbl.textContent = '0 pt'; }
+  const slot = row.querySelector('.dubslot');
+  slot.innerHTML = dub ? `<span class="dub-on">×2 dubbel</span>`
+    : (st === 'open' && canPickDubbel()) ? `<button type="button" class="dub" data-dub="${nr}" aria-label="Opdracht ${nr} dubbel laten tellen">×2</button>` : '';
+  row.setAttribute('aria-label', `Opdracht ${nr}, ${STATUS_LABEL[st]}${s && s.status === 'rejected' && s.reviewNote ? ': ' + s.reviewNote : ''}`);
+}
+
+function paintAll() {
+  if (!inMain) return;
+  C.TASKS.forEach(t => paintRow(t.nr));
+  paintHeader();
+  applyFilter();
+  paintStand();
+}
+
+function paintHeader() {
+  const now = Date.now();
+  const me = C.score(P.team, team(), subs, state, now);
+  const them = C.score(other(P.team), teams[other(P.team)], subs, state, now);
+  $('teamName').textContent = team().name;
+  $('usPts').textContent = me.total;
+  $('themPts').textContent = them.total;
+  $('themName').textContent = teams[other(P.team)].name;
+  $('progressFill').style.width = `${Math.max(0, Math.min(100, me.total / C.MAX * 100))}%`;
+  const n = me.approved.length, w = me.pending.length;
+  $('subline').innerHTML = `<b>${n}</b> goed · <b>${w}</b> wacht · max. nog <b>${me.maxReachable}</b>`;
+  const diff = me.total - them.total;
+  $('leadline').textContent = diff > 0 ? `Jullie staan ${diff} voor` : diff < 0 ? `Zij staan ${-diff} voor` : 'Gelijk';
+  $('nOpen').textContent = C.TASKS.length - me.mine.length;
+  $('nPending').textContent = w;
+  $('nDone').textContent = n + me.rejected.length;
+  C.SECTIONS.forEach((s, ci) => {
+    const d = s.items.filter(t => statusOf(t.nr) === 'approved');
+    const pts = d.reduce((a, t) => a + t.pts, 0);
+    $(`cat-count-${ci}`).textContent = `${d.length}/${s.items.length} · ${pts}/${s.max} pt`;
+    $(`cat-bar-${ci}`).style.width = `${pts / s.max * 100}%`;
+    $(`chip-${ci}`).textContent = `${d.length}/${s.items.length}`;
+  });
+  // Meldingen boven de lijst
+  const dn = $('dubNotice'), wn = $('waitNotice');
+  if (!team().dubbel && !state.startAt) { dn.hidden = false; dn.innerHTML = '<b>Kies vóór de start je dubbel-opdracht.</b> Tik op ×2 bij een opdracht: gelukt telt dubbel, mislukt kost je die punten. Dit kan maar één keer.'; }
+  else if (team().dubbel) { const t = C.BY_NR.get(team().dubbel); dn.hidden = false; dn.innerHTML = `<b>Dubbel-opdracht: nr. ${t.nr}</b> (${t.pts} pt). Gelukt: +${t.pts * 2}. Mislukt: −${t.pts}.`; }
+  else { dn.hidden = false; dn.innerHTML = '<b>Geen dubbel-opdracht gekozen.</b> De begeleiders kunnen er nog een voor jullie vastzetten.'; }
+  const block = submitBlock();
+  wn.hidden = !block; wn.textContent = block || '';
+  paintClock(now);
+}
+
+function paintClock(now = Date.now()) {
+  const el = $('timer');
+  let phase, label, value;
+  const t = team();
+  if (t && t.finishAt && state.startAt) {
+    const late = t.finishAt > C.endAt(state);
+    phase = late ? 'late' : 'done'; label = late ? 'Binnen · te laat' : 'Binnen'; value = F.hhmm(t.finishAt);
+  } else {
+    const ck = C.clock(state, now);
+    phase = ck.phase; label = ck.label; value = ck.value;
+  }
+  el.dataset.phase = phase;
+  $('timerLabel').textContent = label;
+  $('timerValue').textContent = value;
+}
+
+function submitBlock() {
+  const t = team();
+  if (!state.startAt) return 'De begeleiders hebben de klok nog niet gestart. Zodra het spel begint, kun je bewijs insturen.';
+  if (state.finishedAt) return 'Het spel is afgesloten. Insturen kan niet meer; de begeleiders beoordelen wat er nog openstaat.';
+  if (t.finishAt) return 'Jullie zijn binnen gemeld. Insturen kan niet meer.';
+  return null;
+}
+
+// ---------- Filter en zoeken ----------
+function paintFilterButtons() { document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === P.filter))); }
+function applyFilter() {
+  const raw = $('q').value.trim();
+  const q = C.norm(raw);
+  const isNum = /^\d+$/.test(q);
+  let visible = 0;
+  C.TASKS.forEach(t => {
+    const st = statusOf(t.nr);
+    const okFilter = P.filter === 'all' || (P.filter === 'open' ? st === 'open' : P.filter === 'pending' ? st === 'pending' : (st === 'approved' || st === 'rejected'));
+    const okQuery = !q || (isNum ? String(t.nr) === q : t.search.includes(q));
+    const showRow = okFilter && okQuery;
+    ROWS.get(t.nr).hidden = !showRow;
+    if (showRow) visible++;
+  });
+  C.SECTIONS.forEach((s, ci) => { $(`cat-${ci}`).hidden = !s.items.some(t => !ROWS.get(t.nr).hidden); });
+  const empty = $('empty');
+  empty.hidden = visible > 0;
+  if (!visible) empty.textContent = raw ? `Geen opdracht gevonden voor “${raw}”.`
+    : P.filter === 'open' ? 'Alles is ingestuurd. Nu wachten op de begeleiders.'
+    : P.filter === 'pending' ? 'Er wacht niets op beoordeling.'
+    : 'Nog niets beoordeeld.';
+}
+document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { P.filter = b.dataset.filter; save(); paintFilterButtons(); applyFilter(); }));
+$('q').addEventListener('input', applyFilter);
+$('cats').addEventListener('click', e => {
+  const b = e.target.closest('[data-jump]');
+  if (!b) return;
+  const sec = $(`cat-${b.dataset.jump}`);
+  if (sec.hidden) { toast('Niets zichtbaar in deze categorie met dit filter'); return; }
+  sec.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+});
+
+function setView(v, scroll = true) {
+  P.view = v === 'stand' ? 'stand' : 'list'; save();
+  $('viewList').hidden = P.view !== 'list';
+  $('viewStand').hidden = P.view !== 'stand';
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === P.view)));
+  if (scroll) window.scrollTo(0, 0);
+}
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+
+// ---------- Dubbel of niks ----------
+let dubNr = null;
+$('list').addEventListener('click', e => {
+  const dub = e.target.closest('[data-dub]');
+  if (dub) {
+    dubNr = Number(dub.dataset.dub);
+    const t = C.BY_NR.get(dubNr);
+    $('dubText').innerHTML = `Opdracht <b>${t.nr}</b> (${t.pts} ${t.pts === 1 ? 'punt' : 'punten'}) wordt jullie dubbel-opdracht. Gelukt: <b>+${t.pts * 2}</b> in plaats van +${t.pts}. Mislukt of afgekeurd: <b>−${t.pts}</b>.`;
+    $('dubDlg').showModal();
+    return;
+  }
+  const row = e.target.closest('.task');
+  if (!row) return;
+  if (String(window.getSelection ? window.getSelection() : '').length) return;
+  openTask(Number(row.dataset.nr));
+});
+$('dubOk').addEventListener('click', async e => {
+  e.preventDefault();
+  $('dubDlg').close();
+  if (!dubNr) return;
+  if (!canPickDubbel()) { toast('De dubbel-opdracht kan niet meer gekozen worden'); return; }
+  const nr = dubNr; dubNr = null;
+  try {
+    await backend.setTeam(P.team, { dubbel: nr, dubbelAt: Date.now() });
+    backend.log({ type: 'dubbel', team: P.team, nr, text: `Dubbel-opdracht: nr. ${nr}` });
+    toast(`Opdracht ${nr} telt dubbel. Zet hem op de kaart!`);
+  } catch (e) { toast('Opslaan mislukt: ' + (e.message || e)); }
+});
+
+// ---------- Opdracht openen en insturen ----------
+let openNr = null, picked = [], busy = false;
+const dlg = $('taskDlg');
+dlg.addEventListener('click', e => { if (e.target === dlg && !busy) dlg.close(); });
+dlg.addEventListener('cancel', e => { if (busy) e.preventDefault(); });
+dlg.addEventListener('close', () => { picked.forEach(p => p.url && URL.revokeObjectURL(p.url)); picked = []; openNr = null; });
+
+function mediaThumb(m, i, removable) {
+  const inner = m.type === 'image' ? `<img src="${C.esc(m.url)}" alt="">`
+    : m.type === 'video' ? (m.thumbUrl ? `<img src="${C.esc(m.thumbUrl)}" alt="">${ICON.play}` : ICON.Video)
+    : ICON.mic;
+  const tag = m.type === 'video' ? `<span class="tag">${m.duration ? F.dur(m.duration) : 'video'}</span>` : m.type === 'audio' ? '<span class="tag">audio</span>' : '';
+  return `<button type="button" class="m" data-view-media="${i}" aria-label="Bewijs ${i + 1} bekijken">${inner}${tag}${removable ? `<span class="rm" data-rm="${i}" role="button" aria-label="Verwijderen">×</span>` : ''}</button>`;
+}
+
+function openTask(nr) {
+  openNr = nr; picked = [];
+  renderTask();
+  dlg.showModal();
+}
+
+function renderTask() {
+  const nr = openNr;
+  if (nr == null) return;
+  const t = C.BY_NR.get(nr);
+  const s = mySub(nr);
+  const st = C.taskStatus(s);
+  const dub = team().dubbel === nr;
+  const block = submitBlock();
+  const head = `
+    <div class="sheet-head">
+      <h2 id="taskTitle">Opdracht ${nr}</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Sluiten">×</button>
+    </div>
+    <p class="text">${C.rich(t.text)}</p>
+    <div class="metaline">
+      <span class="proof">${ICON[t.proof]}Bewijs: ${t.proof}</span>
+      <span class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : ''}"></i>`).join('')}<b class="pts-b">${t.pts} pt${dub ? ' · ×2' : ''}</b></span>
+      ${dub ? '<span class="dub-on">dubbel-opdracht</span>' : ''}
+    </div>`;
+  let body = '';
+  if (st === 'open') {
+    if (block) {
+      body = `<p class="notice grey">${C.esc(block)}</p>${canPickDubbel() && !dub ? `<button type="button" class="btn ghost" data-dub-open="${nr}">Kies deze als dubbel-opdracht (×2)</button>` : ''}`;
+    } else {
+      body = `
+        <div class="media-grid" id="pickGrid">${picked.map((p, i) => mediaThumb(p, i, true)).join('')}</div>
+        <div class="pick-btns">
+          <button type="button" class="btn ghost" id="pickBtn">${ICON.Foto} ${picked.length ? 'Nog een foto of video' : 'Foto of video kiezen'}</button>
+          ${t.proof === 'Audio' ? `<button type="button" class="btn ghost" id="pickAudio">${ICON.mic} Geluidsopname kiezen</button>` : ''}
+        </div>
+        <div class="field">
+          <label class="field-label" for="noteIn">Opmerking voor de begeleiders (mag leeg)</label>
+          <textarea id="noteIn" maxlength="300" placeholder="Bijvoorbeeld: de tweede foto is bij de derde deur"></textarea>
+        </div>
+        <p class="fine">Minimaal drie van de vier teamleden in beeld, tenzij de opdracht iets anders zegt. Eén keer insturen: afgekeurd is afgekeurd.</p>
+        <div class="progress" id="upProgress" hidden><span id="upFill"></span></div>
+        <p class="error" id="upErr" hidden></p>
+        <button type="button" class="btn primary block" id="sendBtn" ${picked.length ? '' : 'disabled'}>${ICON.send} Versturen naar de begeleiders</button>`;
+    }
+  } else if (st === 'pending') {
+    body = `
+      <div class="status-head pending"><span class="big">Ingestuurd</span><span>Wacht op de begeleiders · ${F.hhmm(s.createdAt)}${s.updatedAt ? ', aangevuld ' + F.hhmm(s.updatedAt) : ''}</span></div>
+      <div class="media-grid">${(s.media || []).map((m, i) => mediaThumb(m, i, false)).join('')}</div>
+      ${s.note ? `<p class="fine">Jullie opmerking: “${C.esc(s.note)}”</p>` : ''}
+      ${block ? '' : `
+        <div class="media-grid" id="pickGrid">${picked.map((p, i) => mediaThumb(p, i, true)).join('')}</div>
+        <div class="pick-btns"><button type="button" class="btn ghost" id="pickBtn">${ICON.plus} Nog een foto of video toevoegen</button></div>
+        <div class="progress" id="upProgress" hidden><span id="upFill"></span></div>
+        <p class="error" id="upErr" hidden></p>
+        <button type="button" class="btn primary block" id="sendBtn" ${picked.length ? '' : 'hidden'}>${ICON.send} Toevoegen aan de inzending</button>`}`;
+  } else if (st === 'approved') {
+    body = `
+      <div class="status-head approved"><span class="big">+${t.pts * (dub ? 2 : 1)} punten</span><span>Goedgekeurd om ${F.hhmm(s.reviewedAt || s.createdAt)}</span>${s.reviewNote ? `<span class="why">“${C.esc(s.reviewNote)}”</span>` : ''}</div>
+      <div class="media-grid">${(s.media || []).map((m, i) => mediaThumb(m, i, false)).join('')}</div>`;
+  } else {
+    body = `
+      <div class="status-head rejected"><span class="big">Afgekeurd${dub ? ` · −${t.pts}` : ' · 0 punten'}</span>${s.reviewNote ? `<span class="why">${C.esc(s.reviewNote)}</span>` : ''}<span>Deze opdracht is gesloten en kan niet opnieuw.</span></div>
+      <div class="media-grid">${(s.media || []).map((m, i) => mediaThumb(m, i, false)).join('')}</div>`;
+  }
+  $('taskBody').innerHTML = head + body;
+}
+
+$('taskBody').addEventListener('click', e => {
+  if (e.target.closest('[data-close]')) { if (!busy) dlg.close(); return; }
+  const dubBtn = e.target.closest('[data-dub-open]');
+  if (dubBtn) { dlg.close(); const b = ROWS.get(Number(dubBtn.dataset.dubOpen)).querySelector('[data-dub]'); if (b) b.click(); return; }
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { e.stopPropagation(); const i = Number(rm.dataset.rm); if (picked[i] && picked[i].url) URL.revokeObjectURL(picked[i].url); picked.splice(i, 1); renderTask(); return; }
+  if (e.target.closest('#pickBtn')) { $('fileIn').click(); return; }
+  if (e.target.closest('#pickAudio')) { $('audioIn').click(); return; }
+  if (e.target.closest('#sendBtn')) { send(); return; }
+  const vm = e.target.closest('[data-view-media]');
+  if (vm) {
+    const i = Number(vm.dataset.viewMedia);
+    const s = mySub(openNr);
+    if (s && s.media && s.media[i] && !vm.closest('#pickGrid')) openLightbox(s.media, i, `Opdracht ${openNr}`);
+    else if (picked[i]) openLightbox([{ type: picked[i].kind, url: picked[i].url, name: picked[i].file.name }], 0, `Opdracht ${openNr} (nog niet verstuurd)`);
+  }
+});
+
+function addFiles(list) {
+  const files = Array.from(list || []);
+  if (!files.length) return;
+  const room = R.maxMedia - picked.length;
+  if (files.length > room) toast(`Maximaal ${R.maxMedia} bestanden per opdracht`);
+  files.slice(0, Math.max(0, room)).forEach(file => {
+    const kind = file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : 'image';
+    picked.push({ file, kind, url: kind === 'audio' ? null : URL.createObjectURL(file) });
+  });
+  renderTask();
+}
+$('fileIn').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+$('audioIn').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+
+async function send() {
+  if (busy || openNr == null || !picked.length) return;
+  const nr = openNr;
+  const s = mySub(nr);
+  const block = submitBlock();
+  if (block) { toast(block); return; }
+  busy = true;
+  const btn = $('sendBtn'), prog = $('upProgress'), fill = $('upFill'), err = $('upErr');
+  btn.disabled = true; btn.textContent = 'Bezig met versturen…'; prog.hidden = false; err.hidden = true; fill.style.width = '2%';
+  try {
+    const items = await prepareMedia(picked.map(p => p.file));
+    const media = await backend.upload(items, `proof/${P.team}/${nr}`, p => { fill.style.width = `${Math.max(2, Math.round(p * 100))}%`; });
+    const note = ($('noteIn') && $('noteIn').value.trim()) || '';
+    if (s && s.status === 'pending') {
+      await backend.addMedia(s.id, media);
+      backend.log({ type: 'addmedia', team: P.team, nr, text: `Bewijs aangevuld bij opdracht ${nr}` });
+      toast(`Toegevoegd aan opdracht ${nr}. De begeleiders zien het meteen.`);
+    } else {
+      await backend.createSubmission({ team: P.team, nr, note, media, by: team().name });
+      backend.log({ type: 'submit', team: P.team, nr, text: `Opdracht ${nr} ingestuurd` });
+      toast(`Opdracht ${nr} is ingestuurd. Nu wachten op de begeleiders.`);
+      buzz(15);
+    }
+    busy = false;
+    dlg.close();
+  } catch (e) {
+    busy = false;
+    console.error(e);
+    err.textContent = e.code === 'exists' ? 'Deze opdracht is al ingestuurd.' : (e.message || 'Versturen mislukt. Controleer je internet en probeer opnieuw.');
+    err.hidden = false;
+    btn.disabled = false; btn.innerHTML = `${ICON.send} Opnieuw proberen`; prog.hidden = true;
+  }
+}
+
+// ---------- Bewijs bekijken ----------
+function openLightbox(media, start, title) {
+  $('lbTitle').textContent = title;
+  $('lbBody').innerHTML = media.map((m, i) => `
+    <div class="item" id="lb-${i}">
+      ${m.type === 'image' ? `<img src="${C.esc(m.url)}" alt="Bewijs ${i + 1}">`
+        : m.type === 'video' ? `<video src="${C.esc(m.url)}" controls playsinline preload="metadata" ${m.thumbUrl ? `poster="${C.esc(m.thumbUrl)}"` : ''}></video>`
+        : `<audio src="${C.esc(m.url)}" controls preload="metadata"></audio>`}
+      <p class="cap">${i + 1}/${media.length}${m.size ? ' · ' + F.mb(m.size) : ''}</p>
+    </div>`).join('');
+  $('lightbox').showModal();
+  const el = $(`lb-${start}`); if (el && start) el.scrollIntoView();
+}
+$('lbClose').addEventListener('click', () => $('lightbox').close());
+$('lightbox').addEventListener('close', () => { $('lbBody').innerHTML = ''; });
+
+// ---------- Stand ----------
+function paintStand() {
+  if ($('viewStand').hidden) return;
+  const now = Date.now();
+  const me = C.score(P.team, team(), subs, state, now);
+  const them = C.score(other(P.team), teams[other(P.team)], subs, state, now);
+  const card = (id, sc, label) => `
+    <div class="card ${id} ${sc.total > (id === P.team ? them.total : me.total) ? 'lead' : ''}">
+      <p class="eyebrow">${label}</p>
+      <p class="nm">${C.esc(teams[id].name)}</p>
+      <p class="tot">${sc.total}</p>
+      <p class="sml">${sc.approved.length} goed · ${sc.pending.length} wacht · ${sc.rejected.length} afgekeurd</p>
+      <p class="sml">max. nog <b>${sc.maxReachable}</b></p>
+    </div>`;
+  $('vs').innerHTML = card(P.team, me, 'Jullie') + card(other(P.team), them, 'Zij');
+  const diff = me.total - them.total;
+  $('verdict').textContent = diff > 0 ? `Jullie staan ${diff} ${diff === 1 ? 'punt' : 'punten'} voor. Doorpakken!`
+    : diff < 0 ? `${teams[other(P.team)].name} staat ${-diff} ${-diff === 1 ? 'punt' : 'punten'} voor. Inhalen dus.`
+    : 'Gelijke stand. Alles hangt af van de volgende opdracht.';
+  const li = (lab, sub, v, text) => `<li><div class="lab-wrap"><span class="lab">${lab}</span>${sub ? `<span class="sub">${sub}</span>` : ''}</div><span class="val ${v > 0 ? 'plus' : v < 0 ? 'minus' : ''}">${text || F.signed(v)}</span></li>`;
+  const d = me.dubbel;
+  const dubSub = !d ? 'Niet gekozen' : d.state === 'hit' ? `Opdracht ${d.nr} gelukt, telt dubbel` : d.state === 'miss' ? `Opdracht ${d.nr} niet gelukt` : d.state === 'pending' ? `Opdracht ${d.nr} wacht op de begeleiders` : `Opdracht ${d.nr}, nog niet gedaan`;
+  const lateSub = me.lateMin > 0 ? `${Math.ceil(me.lateMin)} min te laat · −3 per begonnen 5 minuten` : '−3 per begonnen 5 minuten te laat';
+  $('ledger').innerHTML = [
+    li('Goedgekeurde opdrachten', `${me.approved.length} opdrachten`, me.base, String(me.base)),
+    li('Dubbel of niks', dubSub, d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.pts}?` : null),
+    li('Jurybonus', 'Legendarische uitvoering, door de begeleiders', me.jury),
+    li('Darts of pool gewonnen', 'Bonus bij opdracht 58', me.darts),
+    li('Te laat', lateSub, -me.latePen),
+    ...me.penalties.map(p => li('Straf', C.esc(p.reason || ''), -(p.amount || 0))),
+    `<li class="sum"><div class="lab-wrap"><span class="lab">Totaal</span><span class="sub">${me.halved ? `Meer dan 30 min te laat: de helft van ${me.sub}` : 'Zoals de begeleiders het nu tellen'}</span></div><span class="val">${me.total}</span></li>`,
+  ].join('');
+  $('catsScore').innerHTML = C.catScore(P.team, subs).map(c => `<div class="cs"><span class="cs-name">${C.esc(c.title)}</span><span class="cs-num">${c.done}/${c.n} · <b>${c.pts}</b>/${c.max} pt</span><div class="bar" aria-hidden="true"><span style="width:${c.pts / c.max * 100}%"></span></div></div>`).join('');
+}
+
+// ---------- Meldingen bij veranderingen ----------
+function checkEvents() {
+  const cur = {};
+  subs.filter(s => s.team === P.team).forEach(s => { cur[s.id] = s.status; });
+  cur.__start = state.startAt || 0;
+  cur.__dub = team().dubbel || 0;
+  cur.__fin = team().finishAt || 0;
+  if (P.seen) {
+    Object.entries(cur).forEach(([id, st]) => {
+      if (id.startsWith('__') || P.seen[id] === st) return;
+      const s = subs.find(x => x.id === id);
+      const t = C.BY_NR.get(s.nr);
+      const dub = team().dubbel === s.nr;
+      if (st === 'approved') { toast(`Opdracht ${s.nr} goedgekeurd: +${t.pts * (dub ? 2 : 1)} punten!`, null, null, 6000); buzz([30, 60, 30]); }
+      else if (st === 'rejected') { toast(`Opdracht ${s.nr} afgekeurd${s.reviewNote ? ': ' + s.reviewNote : ''}. Deze kan niet opnieuw.`, null, null, 7000); buzz(80); }
+    });
+    Object.keys(P.seen).forEach(id => { if (!id.startsWith('__') && !cur[id]) { const nr = Number(id.split('-')[1]); toast(`De begeleiders hebben opdracht ${nr} weer opengezet. Je kunt opnieuw insturen.`, null, null, 6000); } });
+    if (P.seen.__start !== cur.__start && cur.__start) { toast(`De klok loopt! Om ${F.hhmm(C.endAt(state))} moeten jullie binnen zijn.`, null, null, 7000); buzz([40, 40, 40]); }
+    if (P.seen.__dub !== cur.__dub && cur.__dub && P.seen.__dub !== undefined) toast(`Opdracht ${cur.__dub} is jullie dubbel-opdracht.`);
+    if (P.seen.__fin !== cur.__fin && cur.__fin) toast(`Jullie zijn binnen gemeld om ${F.hhmm(cur.__fin)}.`);
+  }
+  P.seen = cur; save();
+  if (openNr != null && dlg.open && !busy) renderTask();
+}
+
+// ---------- Team-dialoog ----------
+$('teamBtn').addEventListener('click', () => {
+  $('teamNameIn').value = team().name;
+  const t = team();
+  $('teamInfo').textContent = `Teamcode ${t.code}. ${t.dubbel ? `Dubbel-opdracht: nr. ${t.dubbel}.` : 'Nog geen dubbel-opdracht.'} ${backend.mode === 'mock' ? 'Demo-stand: niets gaat naar internet.' : ''}`;
+  $('teamDlg').showModal();
+});
+$('teamNameIn').addEventListener('change', async e => {
+  const name = e.target.value.trim().slice(0, 24);
+  if (!name || name === team().name) return;
+  try { await backend.setTeam(P.team, { name }); backend.log({ type: 'name', team: P.team, text: `Team heet nu “${name}”` }); toast(`Jullie heten nu ${name}`); } catch (err) { toast('Opslaan mislukt'); }
+});
+$('logoutBtn').addEventListener('click', () => { $('teamDlg').close(); P.team = null; P.code = ''; P.seen = null; save(); pickedTeam = null; document.querySelectorAll('[data-team]').forEach(x => x.setAttribute('aria-pressed', 'false')); paintLogin(); show('login'); });
+
+// Klok en wachttijden elke seconde bijwerken.
+setInterval(() => { if (inMain && state) { paintClock(); if (!$('viewStand').hidden) paintStand(); } }, 1000);
+addEventListener('online', () => toast('Weer verbinding'));
+addEventListener('offline', () => toast('Geen verbinding. Insturen lukt pas weer met internet.', null, null, 6000));
+
+const top = $('top');
+const setTop = () => document.documentElement.style.setProperty('--top-h', `${top.offsetHeight}px`);
+if ('ResizeObserver' in window) new ResizeObserver(setTop).observe(top);
+
+boot();
 </script>
 <script>
   if ('serviceWorker' in navigator && location.protocol === 'https:') {

@@ -1,0 +1,10 @@
+rules_version = '2';
+// Crazy 76: iedereen met de app mag lezen en schrijven tot en met het weekend.
+// Wie wat mag, regelen de apps zelf met de teamcodes en de pincode van de begeleiders.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2026, 12, 31);
+    }
+  }
+}

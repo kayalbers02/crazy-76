@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Dashboard voor de begeleiders van Crazy 76 Dublin: bewijs beoordelen, klok, stand en straffen.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crazy 76 HQ">
+<meta name="theme-color" content="#1F4D2B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>Crazy 76 Begeleiders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@700;800&family=Uncial+Antiqua&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
+<style>
+  .app { max-width: 1040px; margin-inline: auto; padding-inline: 16px; padding-block: 0 calc(112px + env(safe-area-inset-bottom, 0px)); }
+  .gate { display: grid; gap: 22px; min-height: 100dvh; max-width: 480px; padding-block: calc(40px + env(safe-area-inset-top, 0px)) 40px; align-content: start; }
+  .gate .wordmark { font-size: 44px; color: var(--green); }
+  .gate .wordmark .gold { color: var(--gold); }
+  .gate h1 { font-family: var(--f-num); font-weight: 800; font-size: 30px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--green); line-height: 1.05; }
+  .gate code { padding: 2px 6px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; }
+
+  /* ---------- Kop ---------- */
+  .top { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding-inline: 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px; background: var(--bar); color: var(--bar-ink); }
+  .top-in { max-width: 1040px; margin-inline: auto; display: grid; gap: 10px; }
+  .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .role { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bar-muted); }
+  .board { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 14px; }
+  .tscore { display: grid; gap: 3px; min-width: 0; }
+  .tscore .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--bar-muted); }
+  .tscore .nm.A { color: var(--bar-gold); }
+  .tscore .nm.B { color: #9FC1F5; }
+  .tscore .big { font-family: var(--f-num); font-weight: 800; font-size: 40px; line-height: 0.85; font-variant-numeric: tabular-nums; }
+  .tscore .sml { font-size: 12px; color: var(--bar-muted); }
+  .timer { justify-self: end; display: grid; justify-items: end; gap: 3px; min-height: 52px; padding: 7px 12px; border: 0; border-radius: 12px; background: var(--bar-hi); color: var(--bar-ink); }
+  .timer-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bar-muted); white-space: nowrap; }
+  .timer-value { font-family: var(--f-num); font-weight: 800; font-size: 28px; line-height: 0.9; font-variant-numeric: tabular-nums; }
+  .timer[data-phase="idle"] { background: var(--bar-gold); color: #15241A; }
+  .timer[data-phase="idle"] .timer-label { color: #15241A; }
+  .timer[data-phase="soon"] .timer-value { color: var(--bar-gold); }
+  .timer[data-phase="over"] { background: var(--bar-red); }
+  .timer[data-phase="over"] .timer-label { color: var(--bar-ink); }
+  body.mock .top::after { content: "Demo: alles blijft in deze browser"; display: block; margin: 10px -16px -10px; padding: 3px 16px; background: var(--bar-gold); color: #15241A; font-size: 12px; font-weight: 700; text-align: center; }
+
+  /* ---------- Weergaven ---------- */
+  .view { display: grid; gap: 14px; padding-block: 16px; }
+  .view-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .view-head h2 { font-family: var(--f-num); font-weight: 800; font-size: 26px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--green); line-height: 1; }
+  .view-head .sml { font-size: 13px; color: var(--muted); }
+  .cards { display: grid; gap: 12px; }
+  @media (min-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card { display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+  .card.A { border-left: 5px solid var(--team-a); }
+  .card.B { border-left: 5px solid var(--team-b); }
+  .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card-head .nr { font-family: var(--f-num); font-weight: 800; font-size: 26px; line-height: 1; color: var(--green); }
+  .card-head .since { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .card .text { font-size: 15px; line-height: 1.4; }
+  .card .text b { color: var(--green); }
+  .card .note { padding: 8px 10px; border-radius: 8px; background: var(--ground); font-size: 14px; }
+  .card .proofline { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+  .card .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+  .empty { padding: 40px 12px; text-align: center; color: var(--muted); text-wrap: balance; }
+
+  /* ---------- Team ---------- */
+  .team-head { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+  .team-head.A { border-top: 6px solid var(--team-a); }
+  .team-head.B { border-top: 6px solid var(--team-b); }
+  .team-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .team-top .nm { font-family: var(--f-num); font-weight: 800; font-size: 30px; line-height: 1; }
+  .team-top .tot { font-family: var(--f-num); font-weight: 800; font-size: 56px; line-height: 0.85; color: var(--green); font-variant-numeric: tabular-nums; text-align: right; }
+  .team-top .sml { font-size: 13px; color: var(--muted); }
+  .ctl { display: grid; gap: 10px; }
+  @media (min-width: 700px) { .ctl { grid-template-columns: 1fr 1fr; } }
+  .ctl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--ground); }
+  .ctl-row .lab { display: grid; gap: 2px; min-width: 0; }
+  .ctl-row .lab b { font-size: 14px; }
+  .ctl-row .lab span { font-size: 12px; color: var(--muted); }
+  .ctl-row select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font-size: 14px; max-width: 46%; }
+  .pen-list { display: grid; gap: 6px; }
+  .pen { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 14px; font-weight: 700; }
+  .pen button { border: 0; background: transparent; color: inherit; font-size: 18px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips button { flex: none; min-height: 34px; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .chips button[aria-pressed="true"] { background: var(--green); color: var(--on-green); border-color: var(--green); }
+  .trow { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding-block: 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .trow .nr { font-family: var(--f-num); font-weight: 800; font-size: 20px; color: var(--muted); text-align: right; }
+  .trow .tx { font-size: 14px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .trow .tx b { color: var(--green); }
+  .trow .tx small { color: var(--muted); }
+  .trow.approved .nr { color: var(--green); }
+  .trow.rejected .tx { color: var(--muted); }
+
+  /* ---------- Stand ---------- */
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vs .card .nm { font-family: var(--f-num); font-weight: 800; font-size: 24px; line-height: 1; }
+  .vs .card .tot { font-family: var(--f-num); font-weight: 800; font-size: 60px; line-height: 0.85; font-variant-numeric: tabular-nums; }
+  .vs .card.A .tot { color: var(--team-a); }
+  .vs .card.B .tot { color: var(--team-b); }
+  .vs .card.lead { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+  .two { display: grid; gap: 14px; }
+  @media (min-width: 760px) { .two { grid-template-columns: 1fr 1fr; } }
+  .cats-score { display: grid; gap: 10px; }
+  .cs { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
+  .cs-name { font-weight: 700; font-size: 14px; }
+  .cs-num { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cs .bar { grid-column: 1 / -1; }
+  .log { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .log li { display: grid; grid-template-columns: 44px 1fr; gap: 10px; font-size: 14px; }
+  .log time { font-family: var(--f-num); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Instellingen ---------- */
+  .settings { display: grid; gap: 14px; max-width: 560px; }
+  .danger-zone { padding: 14px; border: 1px solid var(--red); border-radius: 14px; display: grid; gap: 10px; }
+
+  .reasons { display: grid; gap: 6px; }
+  .reasons button { text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); font-size: 14px; }
+  .reasons button[aria-pressed="true"] { border-color: var(--red); background: var(--red-soft); color: var(--red); font-weight: 700; }
+  .lb-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+  .pill-live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--bar-muted); }
+  .pill-live i { width: 8px; height: 8px; border-radius: 50%; background: #74C28F; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section class="gate" id="viewSetup" hidden>
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>Nog niet gekoppeld</h1>
+    <p>Er staan nog geen Firebase-gegevens in <code>shared/config.js</code>.</p>
+    <a class="btn ghost" href="?mock=1">Oefenen zonder koppeling</a>
+  </section>
+
+  <section class="gate" id="viewWait">
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>Verbinden…</h1>
+    <p class="fine" id="waitText">Even geduld, het dashboard haalt de stand op.</p>
+  </section>
+
+  <section class="gate" id="viewLogin" hidden>
+    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <h1>Begeleiders</h1>
+    <div class="field">
+      <label class="field-label" for="pinIn">Pincode begeleiders</label>
+      <input id="pinIn" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Pincode">
+      <p class="error" id="loginErr" hidden></p>
+      <p class="help">Standaard 7676. Verander hem straks bij Instellingen.</p>
+    </div>
+    <button type="button" class="btn primary block" id="loginBtn">Naar het dashboard</button>
+    <p class="fine">Team? Ga naar <a href="../">de teamapp</a>.</p>
+  </section>
+
+  <div id="main" hidden>
+    <header class="top">
+      <div class="top-in">
+        <div class="brand-row">
+          <p class="brand"><span class="wordmark">Crazy <span class="gold">76</span></span><span class="role">Begeleiders</span></p>
+          <span class="pill-live" id="live"><i></i>live</span>
+        </div>
+        <div class="board">
+          <div class="tscore"><span class="nm A" id="hdNameA">Team 1</span><span class="big" id="hdPtsA">0</span><span class="sml" id="hdSubA"></span></div>
+          <div class="tscore"><span class="nm B" id="hdNameB">Team 2</span><span class="big" id="hdPtsB">0</span><span class="sml" id="hdSubB"></span></div>
+          <button type="button" class="timer" id="timerBtn" data-phase="idle" aria-label="Klok">
+            <span class="timer-label" id="timerLabel">Start de klok</span>
+            <span class="timer-value" id="timerValue">3:00:00</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="view" id="viewInbox">
+        <div class="view-head"><h2>Inbox</h2><span class="sml" id="inboxSub"></span></div>
+        <div class="cards" id="inbox"></div>
+        <p class="empty" id="inboxEmpty" hidden></p>
+      </section>
+
+      <section class="view" id="viewTeamA" hidden></section>
+      <section class="view" id="viewTeamB" hidden></section>
+
+      <section class="view" id="viewStand" hidden>
+        <div class="view-head"><h2>Stand</h2><span class="sml" id="standClock"></span></div>
+        <div class="vs" id="vs"></div>
+        <div class="two" id="ledgers"></div>
+        <div class="two" id="catsBoth"></div>
+        <div class="row">
+          <button type="button" class="btn ghost small" id="copyStand">Kopieer de stand</button>
+          <button type="button" class="btn ghost small" id="exportBtn">Exporteer alles (JSON)</button>
+        </div>
+        <p class="h-cat">Logboek</p>
+        <ul class="log" id="log"></ul>
+      </section>
+
+      <section class="view" id="viewSettings" hidden>
+        <div class="view-head"><h2>Instellingen</h2></div>
+        <div class="settings">
+          <div class="field">
+            <label class="field-label" for="setPin">Pincode begeleiders</label>
+            <input id="setPin" inputmode="numeric" maxlength="8">
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="field-label" for="setNameA">Naam team 1</label><input id="setNameA" maxlength="24"></div>
+            <div class="field"><label class="field-label" for="setCodeA">Code team 1</label><input id="setCodeA" inputmode="numeric" maxlength="8"></div>
+            <div class="field"><label class="field-label" for="setNameB">Naam team 2</label><input id="setNameB" maxlength="24"></div>
+            <div class="field"><label class="field-label" for="setCodeB">Code team 2</label><input id="setCodeB" inputmode="numeric" maxlength="8"></div>
+          </div>
+          <p class="fine">De teams loggen in met hun code. Verander je een code, dan moet dat team opnieuw inloggen.</p>
+          <div class="field">
+            <label class="field-label" for="setDur">Speelduur (voor de start)</label>
+            <select id="setDur"><option value="120">2 uur</option><option value="150">2 uur 30 min</option><option value="180">3 uur</option><option value="210">3 uur 30 min</option><option value="240">4 uur</option></select>
+          </div>
+          <p class="fine" id="modeInfo"></p>
+          <div class="danger-zone">
+            <p><b>Opnieuw beginnen</b></p>
+            <p class="fine">Wist alle inzendingen, de klok, dubbel-opdrachten, bonussen en straffen. Teamnamen en codes blijven staan. Dit kan niet ongedaan worden gemaakt.</p>
+            <button type="button" class="btn danger" id="wipeBtn">Alles wissen</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="Weergave">
+      <button type="button" data-tab="inbox" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l2.5-8h13L21 13v6H3z"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>Inbox<span class="count" id="inboxCount" hidden></span></button>
+      <button type="button" data-tab="teamA" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.6"/></svg><span id="tabNameA">Team 1</span></button>
+      <button type="button" data-tab="teamB" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.6"/></svg><span id="tabNameB">Team 2</span></button>
+      <button type="button" data-tab="stand" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>Stand</button>
+      <button type="button" data-tab="settings" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Meer</button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button type="button" id="toastAction" hidden></button></div>
+
+  <dialog id="clockDlg" aria-labelledby="clockTitle"><div class="sheet" id="clockBody"></div></dialog>
+  <dialog id="subDlg" aria-labelledby="subTitle"><div class="sheet" id="subBody"></div></dialog>
+  <dialog id="rejectDlg" aria-labelledby="rejTitle">
+    <form method="dialog" class="sheet">
+      <div class="sheet-head"><h2 id="rejTitle">Afkeuren</h2><button class="icon-btn" value="cancel" aria-label="Sluiten">×</button></div>
+      <p id="rejText"></p>
+      <div class="reasons" id="rejReasons"></div>
+      <div class="field"><label class="field-label" for="rejNote">Eigen reden (mag leeg)</label><input id="rejNote" maxlength="120" autocomplete="off"></div>
+      <p class="notice red"><b>Definitief:</b> het team kan deze opdracht daarna niet opnieuw doen. Terugdraaien kan alleen via het dashboard.</p>
+      <div class="grid2"><button class="btn ghost" value="cancel">Toch niet</button><button class="btn danger solid" value="ok" id="rejOk">Afkeuren</button></div>
+    </form>
+  </dialog>
+  <dialog id="penDlg" aria-labelledby="penTitle">
+    <form method="dialog" class="sheet">
+      <div class="sheet-head"><h2 id="penTitle">Straf</h2><button class="icon-btn" value="cancel" aria-label="Sluiten">×</button></div>
+      <div class="reasons" id="penPresets"></div>
+      <div class="grid2">
+        <div class="field"><label class="field-label" for="penAmount">Punten eraf</label><input id="penAmount" inputmode="numeric" type="number" min="1" max="100" value="5"></div>
+        <div class="field"><label class="field-label" for="penReason">Reden</label><input id="penReason" maxlength="80"></div>
+      </div>
+      <div class="grid2"><button class="btn ghost" value="cancel">Toch niet</button><button class="btn danger solid" value="ok" id="penOk">Straf geven</button></div>
+    </form>
+  </dialog>
+  <dialog id="lightbox" class="lightbox" aria-label="Bewijs bekijken">
+    <div class="sheet">
+      <div class="sheet-head"><h2 id="lbTitle">Bewijs</h2><button type="button" class="icon-btn" id="lbClose" aria-label="Sluiten">×</button></div>
+      <div id="lbBody"></div>
+      <div class="lb-actions" id="lbActions" hidden></div>
+    </div>
+  </dialog>
+</div>
+
+<script src="../shared/tasks.js"></script>
+<script src="../shared/rules.js"></script>
+<script src="../shared/config.js"></script>
+<script type="module">
+import { createBackend } from '../shared/backend.js';
+
+const C = window.C76, R = C.RULES, F = C.fmt;
+const $ = id => document.getElementById(id);
+const other = t => t === 'A' ? 'B' : 'A';
+const icon = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  Foto: icon('<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+  Video: icon('<rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 11l6-3v8l-6-3"/>'),
+  Audio: icon('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+  check: icon('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3),
+  x: icon('<path d="M6 6l12 12M18 6L6 18"/>', 3),
+  play: icon('<path d="M8 5l11 7-11 7z"/>'),
+  mic: icon('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+};
+const STATUS = { open: 'Open', pending: 'Wacht', approved: 'Goed', rejected: 'Afgekeurd' };
+
+const LS = 'c76-super';
+function load() { try { return Object.assign({ pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' } }, JSON.parse(localStorage.getItem(LS)) || {}); } catch (e) { return { pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' } }; } }
+function save() { try { localStorage.setItem(LS, JSON.stringify(P)); } catch (e) {} }
+let P = load();
+let backend = null, state = null, teams = null, subs = [], logs = [], inMain = false;
+
+let toastTimer = 0, toastFn = null;
+function toast(text, actionLabel, fn, ms = 5000) {
+  $('toastText').textContent = text;
+  const b = $('toastAction'); b.hidden = !actionLabel; b.textContent = actionLabel || '';
+  toastFn = fn || null;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, ms);
+}
+function hideToast() { $('toast').classList.remove('show'); toastFn = null; }
+$('toastAction').addEventListener('click', () => { const fn = toastFn; hideToast(); if (fn) fn(); });
+function armed(btn, confirmText, fn) {
+  const original = btn.innerHTML; let t = 0;
+  btn.addEventListener('click', () => {
+    if (btn.dataset.armed) { clearTimeout(t); delete btn.dataset.armed; btn.innerHTML = original; fn(); }
+    else { btn.dataset.armed = '1'; btn.textContent = confirmText; t = setTimeout(() => { delete btn.dataset.armed; btn.innerHTML = original; }, 3500); }
+  });
+}
+function show(which) { $('viewWait').hidden = which !== 'wait'; $('viewSetup').hidden = which !== 'setup'; $('viewLogin').hidden = which !== 'login'; $('main').hidden = which !== 'main'; inMain = which === 'main'; }
+const teamName = id => (teams && teams[id] && teams[id].name) || (id === 'A' ? 'Team 1' : 'Team 2');
+const subOf = (team, nr) => subs.find(s => s.team === team && s.nr === nr);
+const ptsFor = (team, nr) => C.BY_NR.get(nr).pts * (teams[team].dubbel === nr ? 2 : 1);
+
+// ---------- Start ----------
+async function boot() {
+  try { backend = await createBackend(window.C76_CONFIG && window.C76_CONFIG.firebase); }
+  catch (e) { show('setup'); return; }
+  if (backend.mode === 'mock') document.body.classList.add('mock');
+  setTimeout(() => { if (!state || !teams) $('waitText').textContent = 'Dit duurt langer dan normaal. Controleer of je internet hebt; het dashboard probeert het vanzelf opnieuw.'; }, 8000);
+  try { await backend.ensureDefaults(); } catch (e) { console.warn(e); }
+  backend.subscribe({
+    onState: s => { state = s; onData(); },
+    onTeams: t => { teams = t; onData(); },
+    onSubmissions: list => { subs = list; onData(); },
+    onLog: l => { logs = l; if (inMain && P.tab === 'stand') paintLog(); },
+    onError: e => { console.error(e); toast('Verbinding met de spelserver mislukt: ' + (e.message || e), null, null, 8000); },
+  });
+}
+function onData() {
+  if (!state || !teams || !teams.A || !teams.B) return;
+  if (String(P.pin) !== String(state.pin)) { if (inMain) toast('De pincode is veranderd. Log opnieuw in.'); show('login'); return; }
+  if (!inMain) { show('main'); setTab(P.tab, false); }
+  paintAll();
+}
+$('loginBtn').addEventListener('click', () => {
+  const pin = $('pinIn').value.trim();
+  if (!state) { toast('Nog geen verbinding met de spelserver'); return; }
+  if (pin !== String(state.pin)) { $('loginErr').textContent = 'Die pincode klopt niet.'; $('loginErr').hidden = false; return; }
+  P.pin = pin; save(); onData();
+});
+$('pinIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+// ---------- Tabs ----------
+function setTab(tab, scroll = true) {
+  P.tab = ['inbox', 'teamA', 'teamB', 'stand', 'settings'].includes(tab) ? tab : 'inbox'; save();
+  ['Inbox', 'TeamA', 'TeamB', 'Stand', 'Settings'].forEach(v => { $('view' + v).hidden = v.toLowerCase() !== P.tab.toLowerCase(); });
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === P.tab)));
+  if (scroll) window.scrollTo(0, 0);
+  paintAll();
+}
+document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+// ---------- Schilderen ----------
+function paintAll() {
+  if (!inMain) return;
+  paintHeader();
+  if (P.tab === 'inbox') paintInbox();
+  else if (P.tab === 'teamA') paintTeam('A');
+  else if (P.tab === 'teamB') paintTeam('B');
+  else if (P.tab === 'stand') { paintStand(); paintLog(); }
+  else if (P.tab === 'settings') paintSettings();
+  if ($('subDlg').open && openSub) renderSub();
+}
+
+function paintHeader() {
+  const now = Date.now();
+  const pending = subs.filter(s => s.status === 'pending').length;
+  const cnt = $('inboxCount'); cnt.hidden = !pending; cnt.textContent = pending;
+  ['A', 'B'].forEach(id => {
+    const sc = C.score(id, teams[id], subs, state, now);
+    $('hdName' + id).textContent = teamName(id);
+    $('hdPts' + id).textContent = sc.total;
+    $('hdSub' + id).textContent = `${sc.approved.length} goed · ${sc.pending.length} wacht · max. ${sc.maxReachable}`;
+    $('tabName' + id).textContent = teamName(id);
+  });
+  paintClock(now);
+}
+function paintClock(now = Date.now()) {
+  const ck = C.clock(state, now);
+  const el = $('timerBtn');
+  el.dataset.phase = ck.phase;
+  $('timerLabel').textContent = ck.phase === 'idle' ? 'Start de klok' : ck.label;
+  $('timerValue').textContent = ck.value;
+  $('standClock').textContent = ck.phase === 'idle' ? 'Klok nog niet gestart' : `${ck.label} · ${ck.value}`;
+}
+
+const mediaThumb = (m, i) => {
+  const inner = m.type === 'image' ? `<img src="${C.esc(m.url)}" alt="" loading="lazy">`
+    : m.type === 'video' ? (m.thumbUrl ? `<img src="${C.esc(m.thumbUrl)}" alt="" loading="lazy">${ICON.play}` : ICON.Video) : ICON.mic;
+  const tag = m.type === 'video' ? `<span class="tag">${m.duration ? F.dur(m.duration) : 'video'}</span>` : m.type === 'audio' ? '<span class="tag">audio</span>' : '';
+  return `<button type="button" class="m" data-media="${i}" aria-label="Bewijs ${i + 1} bekijken">${inner}${tag}</button>`;
+};
+
+function subCard(s, now) {
+  const t = C.BY_NR.get(s.nr);
+  const dub = teams[s.team].dubbel === s.nr;
+  return `
+    <article class="card ${s.team}" data-sub="${s.id}">
+      <div class="card-head">
+        <span class="chip team-${s.team}">${C.esc(teamName(s.team))}</span>
+        <span class="nr">${s.nr}</span>
+        ${dub ? '<span class="chip st-pending">×2 dubbel</span>' : ''}
+        <span class="since">wacht ${F.ago(s.createdAt, now)}</span>
+      </div>
+      <p class="text">${C.rich(t.text)}</p>
+      <div class="media-grid">${(s.media || []).map(mediaThumb).join('')}</div>
+      ${s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
+      <div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span>${(s.media || []).length} bestand${(s.media || []).length === 1 ? '' : 'en'}</span><span>${t.pts} pt${dub ? ' × 2' : ''}</span></div>
+      <div class="actions">
+        <button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>
+        <button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>
+      </div>
+    </article>`;
+}
+function paintInbox() {
+  const now = Date.now();
+  const pending = subs.filter(s => s.status === 'pending').sort((a, b) => a.createdAt - b.createdAt);
+  $('inboxSub').textContent = pending.length ? `${pending.length} wacht${pending.length === 1 ? '' : 'en'} op beoordeling · oudste eerst` : '';
+  $('inbox').innerHTML = pending.map(s => subCard(s, now)).join('');
+  const empty = $('inboxEmpty'); empty.hidden = pending.length > 0;
+  empty.textContent = state.startAt ? 'De inbox is leeg. Zodra een team bewijs instuurt, verschijnt het hier vanzelf.' : 'De klok is nog niet gestart. Zet eerst de teamcodes en namen goed bij Meer, en start dan de klok bovenin.';
+}
+
+function paintTeam(id) {
+  const now = Date.now();
+  const t = teams[id];
+  const sc = C.score(id, t, subs, state, now);
+  const openTasks = C.TASKS.filter(x => !subOf(id, x.nr));
+  const dubT = t.dubbel ? C.BY_NR.get(t.dubbel) : null;
+  const fin = t.finishAt ? `Binnen om ${F.hhmm(t.finishAt)}${sc.lateMin > 0 ? ` · ${Math.ceil(sc.lateMin)} min te laat (−${sc.latePen}${sc.halved ? ', helft van de punten' : ''})` : ' · op tijd'}` : (sc.lateMin > 0 ? `Nog niet binnen · al ${Math.ceil(sc.lateMin)} min over tijd` : 'Nog onderweg');
+  const filter = P.tf[id] || 'all';
+  const rows = C.TASKS.filter(x => { const st = C.taskStatus(subOf(id, x.nr)); return filter === 'all' || st === filter; });
+  $('viewTeam' + id).innerHTML = `
+    <div class="team-head ${id}">
+      <div class="team-top">
+        <div><p class="eyebrow">${id === 'A' ? 'Team 1' : 'Team 2'} · code ${C.esc(String(t.code))}</p><p class="nm">${C.esc(t.name)}</p><p class="sml">${sc.approved.length} goed · ${sc.pending.length} wacht · ${sc.rejected.length} afgekeurd · max. nog ${sc.maxReachable}</p></div>
+        <div><p class="tot">${sc.total}</p><p class="sml">punten</p></div>
+      </div>
+      <div class="ctl">
+        <div class="ctl-row">
+          <div class="lab"><b>Dubbel of niks</b><span>${dubT ? `Nr. ${dubT.nr} (${dubT.pts} pt) · ${sc.dubbel.state === 'hit' ? 'gelukt, +' + dubT.pts + ' extra' : sc.dubbel.state === 'miss' ? 'mislukt, −' + dubT.pts : sc.dubbel.state === 'pending' ? 'wacht op beoordeling' : 'nog open'}` : 'Nog niet gekozen'}</span></div>
+          ${dubT ? `<button type="button" class="btn ghost small" data-dub-clear="${id}">Loskoppelen</button>`
+            : `<select data-dub-set="${id}" aria-label="Dubbel-opdracht kiezen"><option value="">Kies nr.</option>${openTasks.map(x => `<option value="${x.nr}">${x.nr} · ${x.pts} pt</option>`).join('')}</select>`}
+        </div>
+        <div class="ctl-row">
+          <div class="lab"><b>Jurybonus</b><span>Legendarische uitvoering, max. ${R.juryMax}</span></div>
+          <div class="stepper"><button type="button" data-jury="${id}" data-d="-1" aria-label="Jurybonus min 1">−</button><output>${sc.jury}</output><button type="button" data-jury="${id}" data-d="1" aria-label="Jurybonus plus 1">+</button></div>
+        </div>
+        <div class="ctl-row">
+          <div class="lab"><b>Darts of pool gewonnen</b><span>+${R.dartsBonus}, telt als opdracht ${R.dartsNr} is goedgekeurd</span></div>
+          <input type="checkbox" class="switch" data-darts="${id}" ${t.darts ? 'checked' : ''} aria-label="Darts of pool gewonnen">
+        </div>
+        <div class="ctl-row">
+          <div class="lab"><b>${t.finishAt ? 'Binnen' : 'Team is binnen'}</b><span>${fin}</span></div>
+          ${t.finishAt ? `<button type="button" class="btn ghost small" data-unfinish="${id}">Toch niet</button>` : `<button type="button" class="btn primary small" data-finish="${id}" ${state.startAt ? '' : 'disabled'}>Binnen melden</button>`}
+        </div>
+      </div>
+      <div class="pen-list">
+        ${sc.penalties.map((p, i) => `<div class="pen"><span>−${p.amount} · ${C.esc(p.reason || 'Straf')}</span><button type="button" data-pen-rm="${id}" data-i="${i}" aria-label="Straf verwijderen">×</button></div>`).join('')}
+        <button type="button" class="btn ghost small" data-pen-add="${id}">+ Straf geven</button>
+      </div>
+    </div>
+    <div class="chips">${['all', 'open', 'pending', 'approved', 'rejected'].map(f => `<button type="button" data-tf="${id}" data-f="${f}" aria-pressed="${filter === f}">${f === 'all' ? 'Alles' : STATUS[f]} <span>${f === 'all' ? '' : C.TASKS.filter(x => C.taskStatus(subOf(id, x.nr)) === f).length}</span></button>`).join('')}</div>
+    <div class="tlist">
+      ${rows.map(x => { const s = subOf(id, x.nr); const st = C.taskStatus(s); return `
+        <div class="trow ${st}" data-open="${id}:${x.nr}" role="button" tabindex="0">
+          <span class="nr">${x.nr}</span>
+          <p class="tx">${C.rich(x.text)} <small>· ${x.pts} pt${t.dubbel === x.nr ? ' ×2' : ''}${s && s.status === 'rejected' && s.reviewNote ? ' · ' + C.esc(s.reviewNote) : ''}</small></p>
+          <span class="chip st-${st}">${st === 'approved' ? ICON.check + ' +' + ptsFor(id, x.nr) : st === 'rejected' ? ICON.x + ' 0' : st === 'pending' ? 'wacht' : 'open'}</span>
+        </div>`; }).join('')}
+      ${rows.length ? '' : '<p class="empty">Niets in dit filter.</p>'}
+    </div>`;
+}
+
+function ledgerHTML(id, sc) {
+  const li = (lab, sub, v, text) => `<li><div class="lab-wrap"><span class="lab">${lab}</span>${sub ? `<span class="sub">${sub}</span>` : ''}</div><span class="val ${v > 0 ? 'plus' : v < 0 ? 'minus' : ''}">${text || F.signed(v)}</span></li>`;
+  const d = sc.dubbel;
+  return `<ul class="ledger">
+    ${li('Goedgekeurd', `${sc.approved.length} opdrachten`, sc.base, String(sc.base))}
+    ${li('Dubbel of niks', d ? `Nr. ${d.nr} · ${d.state === 'hit' ? 'gelukt' : d.state === 'miss' ? 'mislukt' : 'nog open'}` : 'Niet gekozen', d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.pts}?` : null)}
+    ${li('Jurybonus', '', sc.jury)}
+    ${li('Darts of pool', 'Opdracht 58', sc.darts)}
+    ${li('Te laat', sc.lateMin > 0 ? `${Math.ceil(sc.lateMin)} min` : '', -sc.latePen)}
+    ${sc.penalties.map(p => li('Straf', C.esc(p.reason || ''), -(p.amount || 0))).join('')}
+    <li class="sum"><div class="lab-wrap"><span class="lab">Totaal</span><span class="sub">${sc.halved ? `Meer dan 30 min te laat: helft van ${sc.sub}` : ''}</span></div><span class="val">${sc.total}</span></li>
+  </ul>`;
+}
+function paintStand() {
+  const now = Date.now();
+  const sc = { A: C.score('A', teams.A, subs, state, now), B: C.score('B', teams.B, subs, state, now) };
+  $('vs').innerHTML = ['A', 'B'].map(id => `
+    <div class="card ${id} ${sc[id].total > sc[other(id)].total ? 'lead' : ''}">
+      <p class="eyebrow">${id === 'A' ? 'Team 1' : 'Team 2'}</p><p class="nm">${C.esc(teamName(id))}</p><p class="tot">${sc[id].total}</p>
+      <p class="fine">${sc[id].approved.length} goed · ${sc[id].pending.length} wacht · ${sc[id].rejected.length} afgekeurd</p>
+      <p class="fine">max. nog ${sc[id].maxReachable}</p>
+    </div>`).join('');
+  $('ledgers').innerHTML = ['A', 'B'].map(id => `<div><p class="h-cat" style="margin-bottom:8px">${C.esc(teamName(id))}</p>${ledgerHTML(id, sc[id])}</div>`).join('');
+  $('catsBoth').innerHTML = ['A', 'B'].map(id => `<div class="cats-score"><p class="eyebrow">${C.esc(teamName(id))} per categorie</p>${C.catScore(id, subs).map(c => `<div class="cs"><span class="cs-name">${C.esc(c.title)}</span><span class="cs-num">${c.done}/${c.n} · ${c.pts}/${c.max} pt</span><div class="bar" aria-hidden="true"><span style="width:${c.pts / c.max * 100}%"></span></div></div>`).join('')}</div>`).join('');
+}
+function paintLog() {
+  $('log').innerHTML = logs.slice(0, 60).map(l => `<li><time>${F.hhmm(l.at)}</time><span>${l.team ? `<b>${C.esc(teamName(l.team))}</b> · ` : ''}${C.esc(l.text || l.type)}</span></li>`).join('') || '<li><span class="fine">Nog niets gebeurd.</span></li>';
+}
+function paintSettings() {
+  if (document.activeElement && $('viewSettings').contains(document.activeElement)) return;
+  $('setPin').value = state.pin || '';
+  $('setNameA').value = teams.A.name; $('setCodeA').value = teams.A.code;
+  $('setNameB').value = teams.B.name; $('setCodeB').value = teams.B.code;
+  $('setDur').value = String(state.durationMin || 180);
+  $('setDur').disabled = !!state.startAt;
+  $('modeInfo').textContent = backend.mode === 'mock' ? 'Demo-stand: alles blijft in deze browser en gaat niet naar internet.' : 'Gekoppeld aan Firebase. Alles wat je hier doet, zien de teams meteen.';
+}
+
+// ---------- Beoordelen ----------
+async function approve(id) {
+  const s = subs.find(x => x.id === id); if (!s) return;
+  const pts = ptsFor(s.team, s.nr);
+  const prev = { status: s.status, reviewedAt: s.reviewedAt || null, reviewedBy: s.reviewedBy || null, reviewNote: s.reviewNote || '', points: s.points == null ? null : s.points };
+  try {
+    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: '', points: pts });
+    backend.log({ type: 'approve', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} goedgekeurd (+${pts})` });
+    toast(`${teamName(s.team)}: opdracht ${s.nr} goedgekeurd, +${pts}`, 'Ongedaan maken', () => backend.review(id, prev));
+  } catch (e) { toast('Opslaan mislukt: ' + (e.message || e)); }
+}
+let rejectId = null;
+function askReject(id) {
+  const s = subs.find(x => x.id === id); if (!s) return;
+  rejectId = id;
+  const t = C.BY_NR.get(s.nr);
+  const dub = teams[s.team].dubbel === s.nr;
+  $('rejText').innerHTML = `<b>${C.esc(teamName(s.team))}</b>, opdracht ${s.nr}: 0 punten${dub ? ` en −${t.pts} (dubbel-opdracht)` : ''}.`;
+  $('rejReasons').innerHTML = R.rejectPresets.map(r => `<button type="button" data-reason="${C.esc(r)}" aria-pressed="false">${C.esc(r)}</button>`).join('');
+  $('rejNote').value = '';
+  $('rejectDlg').showModal();
+}
+$('rejReasons').addEventListener('click', e => {
+  const b = e.target.closest('[data-reason]'); if (!b) return;
+  const on = b.getAttribute('aria-pressed') === 'true';
+  $('rejReasons').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  b.setAttribute('aria-pressed', String(!on));
+});
+$('rejOk').addEventListener('click', async e => {
+  e.preventDefault();
+  $('rejectDlg').close();
+  if (!rejectId) return;
+  const id = rejectId; rejectId = null;
+  const s = subs.find(x => x.id === id); if (!s) return;
+  const preset = $('rejReasons').querySelector('[aria-pressed="true"]');
+  const note = [preset && preset.dataset.reason, $('rejNote').value.trim()].filter(Boolean).join(' · ') || 'Afgekeurd door de begeleiders';
+  const dub = teams[s.team].dubbel === s.nr;
+  const prev = { status: s.status, reviewedAt: s.reviewedAt || null, reviewedBy: s.reviewedBy || null, reviewNote: s.reviewNote || '', points: s.points == null ? null : s.points };
+  try {
+    await backend.review(id, { status: 'rejected', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: note, points: dub ? -C.BY_NR.get(s.nr).pts : 0 });
+    backend.log({ type: 'reject', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} afgekeurd: ${note}` });
+    toast(`${teamName(s.team)}: opdracht ${s.nr} afgekeurd`, 'Ongedaan maken', () => backend.review(id, prev));
+    if ($('lightbox').open) $('lightbox').close();
+    if ($('subDlg').open) $('subDlg').close();
+  } catch (e) { toast('Opslaan mislukt: ' + (e.message || e)); }
+});
+async function backToPending(id) {
+  const s = subs.find(x => x.id === id); if (!s) return;
+  await backend.review(id, { status: 'pending', reviewedAt: null, reviewedBy: null, reviewNote: '', points: null });
+  backend.log({ type: 'pending', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} terug in de wachtrij` });
+  toast(`Opdracht ${s.nr} staat weer in de inbox`);
+}
+async function reopen(id) {
+  const s = subs.find(x => x.id === id); if (!s) return;
+  await backend.remove(id);
+  backend.log({ type: 'reopen', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} heropend, team mag opnieuw insturen` });
+  toast(`Opdracht ${s.nr} is weer open voor ${teamName(s.team)}`);
+  $('subDlg').close();
+}
+async function manualApprove(team, nr) {
+  try {
+    const id = await backend.createSubmission({ team, nr, note: 'Handmatig goedgekeurd door de begeleiders', media: [], by: 'begeleiders' });
+    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: 'Handmatig goedgekeurd', points: ptsFor(team, nr) });
+    backend.log({ type: 'approve', team, nr, text: `Opdracht ${nr} handmatig goedgekeurd (+${ptsFor(team, nr)})` });
+    toast(`${teamName(team)}: opdracht ${nr} goedgekeurd zonder bewijs`);
+    $('subDlg').close();
+  } catch (e) { toast(e.code === 'exists' ? 'Dit team heeft deze opdracht al ingestuurd' : 'Opslaan mislukt'); }
+}
+
+// ---------- Inzending bekijken ----------
+let openSub = null; // {team, nr}
+function renderSub() {
+  const { team, nr } = openSub;
+  const t = C.BY_NR.get(nr);
+  const s = subOf(team, nr);
+  const st = C.taskStatus(s);
+  const dub = teams[team].dubbel === nr;
+  let actions = '';
+  if (st === 'open') actions = `<p class="notice grey">Nog niet ingestuurd door ${C.esc(teamName(team))}.</p><button type="button" class="btn ghost" data-manual="${team}:${nr}">Goedkeuren zonder bewijs (+${ptsFor(team, nr)})</button>`;
+  else if (st === 'pending') actions = `<div class="grid2"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(team, nr)}</button></div>`;
+  else if (st === 'approved') actions = `<div class="grid2"><button type="button" class="btn ghost" data-pending="${s.id}">Terug in de wachtrij</button><button type="button" class="btn danger" data-reject="${s.id}">Alsnog afkeuren</button></div>`;
+  else actions = `<div class="grid2"><button type="button" class="btn ghost" data-reopen="${s.id}">Heropenen</button><button type="button" class="btn primary" data-approve="${s.id}">Alsnog goedkeuren +${ptsFor(team, nr)}</button></div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`;
+  $('subBody').innerHTML = `
+    <div class="sheet-head"><div><h2 id="subTitle">Opdracht ${nr}</h2><span class="chip team-${team}">${C.esc(teamName(team))}</span> <span class="chip st-${st}">${STATUS[st]}</span>${dub ? ' <span class="chip st-pending">×2 dubbel</span>' : ''}</div><button type="button" class="icon-btn" data-close aria-label="Sluiten">×</button></div>
+    <p class="text">${C.rich(t.text)}</p>
+    <div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span class="fine">${t.pts} pt${dub ? ' × 2' : ''}</span></div>
+    ${s ? `<div class="media-grid">${(s.media || []).map(mediaThumb).join('')}</div>` : ''}
+    ${s && s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
+    ${s ? `<p class="fine">Ingestuurd ${F.hhmm(s.createdAt)}${s.reviewedAt ? ` · beoordeeld ${F.hhmm(s.reviewedAt)}` : ''}${s.reviewNote ? ` · ${C.esc(s.reviewNote)}` : ''}</p>` : ''}
+    ${actions}`;
+}
+function openSubDlg(team, nr) { openSub = { team, nr }; renderSub(); $('subDlg').showModal(); }
+$('subDlg').addEventListener('click', e => { if (e.target === $('subDlg')) $('subDlg').close(); });
+$('subDlg').addEventListener('close', () => { openSub = null; });
+
+function openLightbox(s, start) {
+  const media = s.media || [];
+  $('lbTitle').textContent = `${teamName(s.team)} · opdracht ${s.nr}`;
+  $('lbBody').innerHTML = media.map((m, i) => `
+    <div class="item" id="lb-${i}">
+      ${m.type === 'image' ? `<img src="${C.esc(m.url)}" alt="Bewijs ${i + 1}">`
+        : m.type === 'video' ? `<video src="${C.esc(m.url)}" controls playsinline preload="metadata" ${m.thumbUrl ? `poster="${C.esc(m.thumbUrl)}"` : ''}></video>`
+        : `<audio src="${C.esc(m.url)}" controls preload="metadata"></audio>`}
+      <p class="cap">${i + 1}/${media.length}${m.size ? ' · ' + F.mb(m.size) : ''}${m.duration ? ' · ' + F.dur(m.duration) : ''}</p>
+    </div>`).join('');
+  const act = $('lbActions');
+  act.hidden = s.status !== 'pending';
+  act.innerHTML = s.status === 'pending' ? `<button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>` : '';
+  $('lightbox').showModal();
+  const el = $(`lb-${start}`); if (el && start) el.scrollIntoView();
+}
+$('lbClose').addEventListener('click', () => $('lightbox').close());
+$('lightbox').addEventListener('close', () => { $('lbBody').innerHTML = ''; });
+
+// Eén klik-afhandeling voor alle knoppen met data-attributen.
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-approve],[data-reject],[data-pending],[data-reopen],[data-manual],[data-media],[data-open],[data-close],[data-dub-clear],[data-jury],[data-finish],[data-unfinish],[data-pen-add],[data-pen-rm],[data-tf]');
+  if (!el) return;
+  const d = el.dataset;
+  if (d.approve) { await approve(d.approve); if ($('lightbox').open) $('lightbox').close(); return; }
+  if (d.reject) { askReject(d.reject); return; }
+  if (d.pending) { await backToPending(d.pending); $('subDlg').close(); return; }
+  if (d.reopen) { await reopen(d.reopen); return; }
+  if (d.manual) { const [team, nr] = d.manual.split(':'); await manualApprove(team, Number(nr)); return; }
+  if (d.close) { $('subDlg').close(); return; }
+  if (d.media !== undefined) {
+    const card = el.closest('[data-sub]');
+    const s = card ? subs.find(x => x.id === card.dataset.sub) : (openSub ? subOf(openSub.team, openSub.nr) : null);
+    if (s) openLightbox(s, Number(d.media));
+    return;
+  }
+  if (d.open) { const [team, nr] = d.open.split(':'); openSubDlg(team, Number(nr)); return; }
+  if (d.dubClear) { await backend.setTeam(d.dubClear, { dubbel: null, dubbelAt: null }); backend.log({ type: 'dubbel', team: d.dubClear, text: 'Dubbel-opdracht losgekoppeld' }); toast(`Dubbel-opdracht van ${teamName(d.dubClear)} losgekoppeld`); return; }
+  if (d.jury) { const t = teams[d.jury]; const v = Math.min(R.juryMax, Math.max(0, (t.jury || 0) + Number(d.d))); await backend.setTeam(d.jury, { jury: v }); return; }
+  if (d.finish) { const now = Date.now(); await backend.setTeam(d.finish, { finishAt: now }); backend.log({ type: 'finish', team: d.finish, text: `Binnen gemeld om ${F.hhmm(now)}` }); toast(`${teamName(d.finish)} is binnen`, 'Ongedaan maken', () => backend.setTeam(d.finish, { finishAt: null })); return; }
+  if (d.unfinish) { await backend.setTeam(d.unfinish, { finishAt: null }); backend.log({ type: 'finish', team: d.unfinish, text: 'Binnen-melding ingetrokken' }); return; }
+  if (d.penAdd) { openPen(d.penAdd); return; }
+  if (d.penRm) { const list = (teams[d.penRm].penalties || []).slice(); const p = list.splice(Number(d.i), 1)[0]; await backend.setTeam(d.penRm, { penalties: list }); backend.log({ type: 'penalty', team: d.penRm, text: `Straf verwijderd: ${p ? p.reason : ''}` }); return; }
+  if (d.tf) { P.tf[d.tf] = d.f; save(); paintTeam(d.tf); return; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('[data-open]')) e.target.click(); });
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if (el.matches('[data-dub-set]')) {
+    const nr = Number(el.value); if (!nr) return;
+    const id = el.dataset.dubSet;
+    await backend.setTeam(id, { dubbel: nr, dubbelAt: Date.now() });
+    backend.log({ type: 'dubbel', team: id, nr, text: `Dubbel-opdracht vastgezet: nr. ${nr}` });
+    toast(`Opdracht ${nr} is de dubbel-opdracht van ${teamName(id)}`);
+  } else if (el.matches('[data-darts]')) {
+    await backend.setTeam(el.dataset.darts, { darts: el.checked });
+  }
+});
+
+// ---------- Straffen ----------
+let penTeam = null;
+function openPen(team) {
+  penTeam = team;
+  $('penTitle').textContent = `Straf voor ${teamName(team)}`;
+  $('penPresets').innerHTML = R.penaltyPresets.map(p => `<button type="button" data-pa="${p.amount}" data-pr="${C.esc(p.reason)}">−${p.amount} · ${C.esc(p.reason)}</button>`).join('');
+  $('penAmount').value = 5; $('penReason').value = '';
+  $('penDlg').showModal();
+}
+$('penPresets').addEventListener('click', e => { const b = e.target.closest('[data-pa]'); if (!b) return; $('penAmount').value = b.dataset.pa; $('penReason').value = b.dataset.pr; $('penPresets').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+$('penOk').addEventListener('click', async e => {
+  e.preventDefault();
+  $('penDlg').close();
+  if (!penTeam) return;
+  const amount = Math.max(1, Math.min(100, Number($('penAmount').value) || 0));
+  const reason = $('penReason').value.trim() || 'Straf';
+  const list = [...(teams[penTeam].penalties || []), { amount, reason, at: Date.now() }];
+  await backend.setTeam(penTeam, { penalties: list });
+  backend.log({ type: 'penalty', team: penTeam, text: `Straf −${amount}: ${reason}` });
+  toast(`${teamName(penTeam)}: −${amount} (${reason})`);
+  penTeam = null;
+});
+
+// ---------- Klok ----------
+function renderClock() {
+  const ck = C.clock(state);
+  const dur = state.durationMin || 180;
+  const missing = ['A', 'B'].filter(id => !teams[id].dubbel).map(teamName);
+  let body;
+  if (ck.phase === 'idle') body = `
+    <p>Zodra je start, kunnen beide teams bewijs insturen en telt de klok ${F.durText(dur)} af. Speelduur aanpassen kan bij Meer.</p>
+    ${missing.length ? `<p class="notice gold"><b>Nog geen dubbel-opdracht:</b> ${missing.map(C.esc).join(' en ')}. Na de start kunnen teams die niet meer zelf kiezen; jij wel, bij het team.</p>` : '<p class="notice green"><b>Beide teams</b> hebben hun dubbel-opdracht gekozen.</p>'}
+    <button type="button" class="btn gold block" id="clockStart">Start de klok (${F.durText(dur)})</button>`;
+  else if (ck.phase === 'closed') body = `
+    <p>Het spel is afgesloten om ${F.hhmm(state.finishedAt)}. De teams kunnen niets meer insturen; wat nog in de inbox staat, kun je gewoon beoordelen.</p>
+    <button type="button" class="btn ghost block" id="clockReopen">Spel heropenen</button>
+    <button type="button" class="btn danger block" id="clockReset">Klok op nul</button>`;
+  else body = `
+    <p>Gestart om ${F.hhmm(state.startAt)}, eindtijd <b>${F.hhmm(ck.endAt)}</b>. ${ck.phase === 'over' ? 'De eindtijd is voorbij; meld teams binnen bij hun tabblad, dan rekent de app de strafpunten uit.' : ''}</p>
+    <div class="grid2"><button type="button" class="btn ghost" id="clockMinus">−5 min</button><button type="button" class="btn ghost" id="clockPlus">+5 min</button></div>
+    <button type="button" class="btn primary block" id="clockClose">Spel afsluiten (niemand kan meer insturen)</button>
+    <button type="button" class="btn danger block" id="clockReset">Klok op nul</button>`;
+  $('clockBody').innerHTML = `<div class="sheet-head"><h2 id="clockTitle">Klok</h2><button type="button" class="icon-btn" id="clockX" aria-label="Sluiten">×</button></div>${body}`;
+  $('clockX').addEventListener('click', () => $('clockDlg').close());
+  const start = $('clockStart'); if (start) armed(start, 'Tik nog een keer om te starten', async () => {
+    const now = Date.now();
+    await backend.setState({ startAt: now, finishedAt: null });
+    backend.log({ type: 'clock', text: `Klok gestart, eindtijd ${F.hhmm(now + dur * 60000)}` });
+    toast(`De klok loopt. Eindtijd ${F.hhmm(now + dur * 60000)}.`);
+    $('clockDlg').close();
+  });
+  const reset = $('clockReset'); if (reset) armed(reset, 'Tik nog een keer: klok op nul', async () => { await backend.setState({ startAt: null, finishedAt: null }); backend.log({ type: 'clock', text: 'Klok op nul gezet' }); $('clockDlg').close(); });
+  const close = $('clockClose'); if (close) armed(close, 'Tik nog een keer om af te sluiten', async () => { const now = Date.now(); await backend.setState({ finishedAt: now }); backend.log({ type: 'clock', text: `Spel afgesloten om ${F.hhmm(now)}` }); $('clockDlg').close(); });
+  const reopen = $('clockReopen'); if (reopen) reopen.addEventListener('click', async () => { await backend.setState({ finishedAt: null }); backend.log({ type: 'clock', text: 'Spel heropend' }); $('clockDlg').close(); });
+  const plus = $('clockPlus'); if (plus) plus.addEventListener('click', async () => { await backend.setState({ durationMin: dur + 5 }); backend.log({ type: 'clock', text: 'Eindtijd 5 minuten later' }); renderClock(); });
+  const minus = $('clockMinus'); if (minus) minus.addEventListener('click', async () => { await backend.setState({ durationMin: Math.max(5, dur - 5) }); backend.log({ type: 'clock', text: 'Eindtijd 5 minuten eerder' }); renderClock(); });
+}
+$('timerBtn').addEventListener('click', () => { renderClock(); $('clockDlg').showModal(); });
+$('clockDlg').addEventListener('click', e => { if (e.target === $('clockDlg')) $('clockDlg').close(); });
+
+// ---------- Instellingen ----------
+const bind = (id, fn) => $(id).addEventListener('change', e => fn(e.target.value.trim()));
+bind('setPin', async v => { if (!v) return; await backend.setState({ pin: v }); P.pin = v; save(); toast('Pincode aangepast'); });
+bind('setNameA', v => v && backend.setTeam('A', { name: v.slice(0, 24) }));
+bind('setNameB', v => v && backend.setTeam('B', { name: v.slice(0, 24) }));
+bind('setCodeA', v => v && backend.setTeam('A', { code: v }));
+bind('setCodeB', v => v && backend.setTeam('B', { code: v }));
+bind('setDur', v => backend.setState({ durationMin: Number(v) }));
+armed($('wipeBtn'), 'Tik nog een keer om ALLES te wissen', async () => {
+  try { await backend.resetGame(); toast('Alles is gewist. Het spel kan opnieuw beginnen.'); } catch (e) { toast('Wissen mislukt: ' + (e.message || e)); }
+});
+
+// ---------- Stand delen en exporteren ----------
+function standText() {
+  const sc = { A: C.score('A', teams.A, subs, state), B: C.score('B', teams.B, subs, state) };
+  return `Crazy 76 · stand ${F.hhmm(Date.now())}\n${teamName('A')}: ${sc.A.total} punten (${sc.A.approved.length} goed, ${sc.A.pending.length} wacht)\n${teamName('B')}: ${sc.B.total} punten (${sc.B.approved.length} goed, ${sc.B.pending.length} wacht)`;
+}
+$('copyStand').addEventListener('click', async () => { const text = standText(); try { await navigator.clipboard.writeText(text); toast('Stand gekopieerd'); } catch (e) { toast(text, null, null, 9000); } });
+$('exportBtn').addEventListener('click', () => {
+  const data = { exportedAt: new Date().toISOString(), state, teams, submissions: subs, log: logs, scores: { A: C.score('A', teams.A, subs, state), B: C.score('B', teams.B, subs, state) } };
+  const blob = new Blob([JSON.stringify(data, (k, v) => (k === 'byNr' || k === 'mine' ? undefined : v), 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `crazy76-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+setInterval(() => { if (inMain && state) { paintClock(); if (P.tab === 'inbox') paintInbox(); } }, 15000);
+setInterval(() => { if (inMain && state) paintClock(); }, 1000);
+addEventListener('offline', () => { $('live').innerHTML = '<span class="conn">geen verbinding</span>'; });
+addEventListener('online', () => { $('live').innerHTML = '<i></i>live'; });
+
+boot();
+</script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    addEventListener('load', () => navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {}));
+  }
+</script>
+</body>
+</html>
