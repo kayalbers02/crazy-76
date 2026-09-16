@@ -803,6 +803,8 @@ function paintStand() {
 
 // ---------- Meldingen bij veranderingen ----------
 function checkEvents() {
+  // Meldingen vergelijken met wat deze telefoon al zag; na een wissel tussen demo en echt opnieuw beginnen.
+  if (P.seenMode !== backend.mode) { P.seen = null; P.seenMode = backend.mode; }
   const cur = {};
   subs.filter(s => s.team === P.team).forEach(s => { cur[s.id] = s.status; });
   cur.__start = state.startAt || 0;
