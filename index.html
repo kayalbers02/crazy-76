@@ -355,7 +355,7 @@ async function boot() {
     return;
   }
   if (backend.mode === 'mock') document.body.classList.add('mock');
-  setTimeout(() => { if (!state || !teams) $('waitText').textContent = 'Dit duurt langer dan normaal. Controleer of je internet hebt; de app probeert het vanzelf opnieuw.'; }, 8000);
+  setTimeout(() => { if (!state || !teams) $('waitText').textContent = 'Dit duurt langer dan normaal. Controleer of je internet hebt; de app probeert het vanzelf opnieuw. Stel je Firebase net in? Dan moet de Firestore-database bestaan en moeten de regels gepubliceerd zijn.'; }, 8000);
   try { await backend.ensureDefaults(); } catch (e) { console.warn('Standaardwaarden niet gezet', e); }
   backend.subscribe({
     onState: s => { state = s; onData(); },
