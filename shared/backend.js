@@ -103,6 +103,9 @@ async function createFirebase(config) {
     db = fs.getFirestore(app);
   }
   const storage = st.getStorage(app);
+  // Bij een kapotte verbinding liever na een minuut een foutmelding dan tien minuten een draaiend balkje.
+  storage.maxUploadRetryTime = 60000;
+  storage.maxOperationRetryTime = 30000;
   const stateRef = fs.doc(db, 'game', 'state');
   const teamRef = id => fs.doc(db, 'teams', id);
   const subRef = id => fs.doc(db, 'submissions', id);
