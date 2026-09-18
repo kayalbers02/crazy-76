@@ -171,7 +171,7 @@
   .ring { position: absolute; left: 50%; bottom: 2%; width: 40%; aspect-ratio: 3.2; transform: translate(-50%, 50%) scale(0); border: 5px solid var(--gold-hi); border-radius: 50%; opacity: 0; }
   .hero-move { position: relative; height: 100%; display: grid; place-items: end center; will-change: transform; }
   .hero-bob { height: 100%; display: grid; place-items: end center; transform-origin: 50% 100%; animation: hero-bob 0.36s ease-in-out infinite alternate; }
-  .hero-img { display: block; height: var(--stage-h); width: auto; max-width: none; filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.35)); animation: hero-flip 0.72s steps(1, end) infinite; -webkit-user-drag: none; user-select: none; }
+  .hero-img { display: block; height: var(--stage-h); width: auto; max-width: none; filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.35)); animation: hero-flip 0.72s linear infinite; -webkit-user-drag: none; user-select: none; }
   .digit { position: absolute; top: 16%; font: 700 60px/1 var(--f-board); color: var(--gold-hi); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 #000; }
   /* In de sprite is de linkerhand (voor de kijker) omhoog; in spiegelbeeld de rechter. */
   .digit.d7 { left: 4%; animation: digit-a 0.72s ease-in-out infinite; }
@@ -187,6 +187,33 @@
   .clover { position: absolute; top: -40px; left: var(--x); width: var(--s); height: var(--s); background: var(--c); -webkit-mask: var(--clover) center / contain no-repeat; mask: var(--clover) center / contain no-repeat; animation: clover-fall var(--d) var(--w) linear infinite; opacity: 0.9; }
   :root { --clover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-13 -13 26 26'%3E%3Cpath transform='rotate(45)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(135)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(225)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(315)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3C/svg%3E"); }
 
+  /* ---------- Afgekeurd: de twee begeleiders kruisen hun armen ---------- */
+  .party.nope { background: radial-gradient(120% 80% at 50% 42%, #5c1714 0%, #2b0c0b 55%, #110404 100%); }
+  .party.nope::before { border-color: rgba(255, 170, 160, 0.45); }
+  .nope-title { display: inline-block; padding: 4px 16px 6px; border: 4px solid #ff6a5e; border-radius: 8px; color: #ff6a5e; font: 700 clamp(38px, 12vw, 58px)/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; transform: rotate(-5deg); animation: nope-stamp 0.45s 0.1s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+  .party-card.rejected .band { background: repeating-linear-gradient(-45deg, #8d8d8d 0 8px, #787878 8px 16px); color: #fff; }
+  .party-card.rejected .party-pts { color: var(--no); }
+  .nope-reason { max-width: 34ch; font: italic 400 16px/1.35 var(--f-flavor); color: #ffd9d4; text-wrap: balance; }
+  .party.nope .party-hero { color: #ffb4aa; }
+  .party.nope .party-hint { color: #d9a39d; }
+  .party.nope .rays { background: repeating-conic-gradient(from 0deg, rgba(236, 42, 36, 0.42) 0 9deg, rgba(0, 0, 0, 0.3) 9deg 18deg); animation: rays-spin 22s linear infinite reverse, party-in 0.6s ease both; }
+  .stage.duo { display: flex; justify-content: center; align-items: flex-end; }
+  .judge { position: relative; flex: 0 0 47%; height: var(--stage-h); }
+  .judge.left { animation: in-left 0.6s 0.15s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+  .judge.right { animation: in-right 0.6s 0.3s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+  .judge .hero-bob { position: absolute; inset: 0; display: block; animation: judge-nod 1.3s ease-in-out infinite; }
+  .judge img { position: absolute; left: 50%; bottom: 0; height: 94%; width: auto; max-width: none; transform: translateX(-50%); filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.4)); -webkit-user-drag: none; user-select: none; }
+  /* Armen normaal, armen gekruist, armen normaal, armen gekruist. */
+  .judge .fa { animation: frame-a 1.3s linear infinite; }
+  .judge .fb { animation: frame-b 1.3s linear infinite; }
+  .burst.no { background: var(--g-red); color: #fff; right: auto; left: 50%; bottom: 0; translate: -50% 0; transform: rotate(-8deg); }
+  @keyframes nope-stamp { from { opacity: 0; transform: scale(2.2) rotate(-18deg); } to { opacity: 1; transform: rotate(-5deg); } }
+  @keyframes in-left { from { transform: translateX(-130%); } }
+  @keyframes in-right { from { transform: translateX(130%); } }
+  @keyframes frame-a { 0%, 49.99% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes frame-b { 0%, 49.99% { opacity: 0; } 50%, 100% { opacity: 1; } }
+  @keyframes judge-nod { 0%, 45% { transform: translateY(0); } 55% { transform: translateY(6px); } 65%, 100% { transform: translateY(0); } }
+
   /* Vijf binnenkomsten; daarna doet de held het six-seven-gebaar met de handen naar beneden. */
   .stage[data-anim="pop"] .hero-move { animation: in-pop 0.7s 0.15s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
   .stage[data-anim="vlieg"] .hero-move { animation: in-vlieg 1.7s 0.1s cubic-bezier(0.4, 0, 0.3, 1) both; }
@@ -199,7 +226,7 @@
   @keyframes party-pop { from { opacity: 0; transform: scale(0.6) rotate(-10deg); } }
   @keyframes party-shake { 0%, 100% { transform: none; } 15% { transform: translate(-7px, 5px); } 30% { transform: translate(6px, -4px); } 45% { transform: translate(-5px, 3px); } 60% { transform: translate(4px, -2px); } 80% { transform: translate(-2px, 1px); } }
   @keyframes rays-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-  @keyframes hero-flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+  @keyframes hero-flip { 0%, 49.99% { transform: scaleX(1); } 50%, 100% { transform: scaleX(-1); } }
   @keyframes hero-bob { from { transform: translateY(0) scaleY(1); } to { transform: translateY(-12px) scaleY(1.02); } }
   /* Het cijfer is groot zolang de hand aan die kant omhoog is (gelijk met het wisselen van de figuur). */
   @keyframes digit-a { 0%, 40%, 100% { transform: translateY(-8px) scale(1.25); opacity: 1; } 50%, 90% { transform: translateY(8px) scale(0.85); opacity: 0.5; } }
@@ -354,6 +381,7 @@
       </div>
       <p class="fine" id="teamInfo"></p>
       <button type="button" class="btn ghost" id="demoPartyBtn">Bekijk een feestje</button>
+      <button type="button" class="btn ghost" id="demoNopeBtn">Bekijk een afkeuring</button>
       <button type="button" class="btn ghost" id="logoutBtn">Ander team kiezen</button>
     </form>
   </dialog>
@@ -762,6 +790,7 @@ let hashDone = false;
 function openFromHash() {
   if (hashDone || !subsReady) return;
   hashDone = true;
+  if (location.hash === '#afgekeurd') { demoNope(); return; }
   const f = /^#feest(?:-(\w+))?$/.exec(location.hash);
   if (f) { demoParty(f[1]); return; }
   const m = /^#opdracht-(\d+)$/.exec(location.hash);
@@ -970,7 +999,7 @@ function checkEvents() {
       const t = C.BY_NR.get(s.nr);
       const dub = team().dubbel === s.nr;
       if (st === 'approved') celebrate(s.nr, t.pts * (dub ? 2 : 1));
-      else if (st === 'rejected') { toast(`Opdracht ${s.nr} afgekeurd${s.reviewNote ? ': ' + s.reviewNote : ''}. Deze kan niet opnieuw.`, null, null, 7000); buzz(80); }
+      else if (st === 'rejected') disapprove(s.nr, s.reviewNote, dub ? -t.pts : 0);
     });
     Object.keys(P.seen).forEach(id => { if (!id.startsWith('__') && !cur[id]) { const nr = Number(id.split('-')[1]); toast(`De begeleiders hebben opdracht ${nr} weer opengezet. Je kunt opnieuw insturen.`, null, null, 6000); } });
     if (P.seen.__start !== cur.__start && cur.__start) { toast(`De klok loopt! Om ${F.hhmm(C.endAt(state))} moeten jullie binnen zijn.`, null, null, 7000); buzz([40, 40, 40]); }
@@ -998,11 +1027,18 @@ const HEROES = [
 const ANIMS = ['pop', 'vlieg', 'landing', 'draai', 'moonwalk'];
 const BURSTS = ['Bam!', 'Sláinte!', 'Pow!', 'Craic!', 'Kaboem!', 'Jawel!', 'Boem!'];
 const FLAVORS = ['viert het met jullie.', 'keurt het goed.', 'doet de zeven-zes.', 'is trots op jullie.', 'komt even langs.'];
+// Bij een afgekeurde opdracht staan alleen deze twee er, met de armen over elkaar.
+const JUDGES = [{ id: 'kay', hero: 'Captain Eire' }, { id: 'juf', hero: 'Iron Craic' }];
+const NOPES = ['Nee!', 'Helaas!', 'Foei!', 'Jammer!', 'Niks ervan!'];
 const partyQueue = [];
 let partyOpen = false, lastHero = -1, lastAnim = -1;
 const pickOther = (n, last) => { let i = Math.floor(Math.random() * n); if (n > 1 && i === last) i = (i + 1) % n; return i; };
 let heroesWarm = false;
-function warmHeroes() { if (heroesWarm) return; heroesWarm = true; HEROES.forEach(h => { const i = new Image(); i.src = `helden/${h.id}.webp`; }); }
+function warmHeroes() {
+  if (heroesWarm) return; heroesWarm = true;
+  const files = HEROES.map(h => `${h.id}.webp`).concat(JUDGES.flatMap(j => [`${j.id}-nee-a.webp`, `${j.id}-nee-b.webp`]));
+  files.forEach(f => { const i = new Image(); i.src = `helden/${f}`; });
+}
 
 function celebrate(nr, pts, demo) {
   if (busy) { toast(`Opdracht ${nr} goedgekeurd: +${pts} ${pts === 1 ? 'punt' : 'punten'}!`, null, null, 6000); return; }
@@ -1021,6 +1057,8 @@ function nextParty() {
   partyOpen = true;
   // Een open kaart of bewijsvenster ligt anders bovenop het feest.
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
+  el.classList.toggle('nope', item.kind === 'nope');
+  if (item.kind === 'nope') { renderNope(item); el.classList.remove('out'); el.hidden = false; buzz([120, 80, 120]); return; }
   const t = C.BY_NR.get(item.nr);
   lastHero = pickOther(HEROES.length, lastHero);
   lastAnim = item.anim != null ? item.anim : pickOther(ANIMS.length, lastAnim);
@@ -1054,9 +1092,36 @@ function nextParty() {
   buzz([30, 60, 30, 60, 60]);
   // Het feest sluit niet vanzelf: de held blijft het gebaar doen tot iemand tikt.
 }
+function renderNope(item) {
+  const t = C.BY_NR.get(item.nr);
+  const inner = $('partyIn');
+  inner.className = 'party-in shake';
+  $('partyClovers').innerHTML = '';
+  inner.innerHTML = `
+    <p class="nope-title">Afgekeurd!</p>
+    <div class="party-card rejected"><div class="band">Opdracht ${item.nr}</div><p class="party-pts">${item.pts < 0 ? '−' + Math.abs(item.pts) : '0'} <small>${Math.abs(item.pts) === 1 ? 'punt' : 'punten'}</small></p></div>
+    ${item.reason ? `<p class="nope-reason">“${C.esc(item.reason)}”</p>` : ''}
+    <div class="stage duo">
+      <div class="rays" aria-hidden="true"></div>
+      ${JUDGES.map((j, i) => `<div class="judge ${i ? 'right' : 'left'}"><div class="hero-bob"><img class="fa" src="helden/${j.id}-nee-a.webp" alt="" draggable="false"><img class="fb" src="helden/${j.id}-nee-b.webp" alt="${C.esc(j.hero)} met de armen over elkaar" draggable="false"></div></div>`).join('')}
+      <span class="burst no" aria-hidden="true">${C.esc(NOPES[Math.floor(Math.random() * NOPES.length)])}</span>
+    </div>
+    <p class="party-hero">${JUDGES.map(j => C.esc(j.hero)).join(' en ')} keuren dit af. Deze opdracht kan niet opnieuw.</p>
+    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p>`;
+  inner.querySelectorAll('.judge img').forEach(img => img.addEventListener('error', () => img.remove(), { once: true }));
+}
+function disapprove(nr, reason, pts, demo) {
+  if (busy) { toast(`Opdracht ${nr} afgekeurd${reason ? ': ' + reason : ''}. Deze kan niet opnieuw.`, null, null, 7000); return; }
+  partyQueue.push({ kind: 'nope', nr, reason, pts: pts || 0, demo });
+  if (!partyOpen) nextParty();
+}
 $('party').addEventListener('click', nextParty);
 document.addEventListener('keydown', e => { if (partyOpen && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) nextParty(); });
 // Voorbeeld bekijken zonder te spelen: knop bij "Jullie team", of #feest achter het adres (ook #feest-landing enz.).
+function demoNope() {
+  const t = C.TASKS[Math.floor(Math.random() * C.TASKS.length)];
+  disapprove(t.nr, R.rejectPresets[Math.floor(Math.random() * R.rejectPresets.length)], 0, true);
+}
 function demoParty(animName) {
   const t = C.TASKS[Math.floor(Math.random() * C.TASKS.length)];
   const i = ANIMS.indexOf(animName);
@@ -1077,6 +1142,7 @@ $('teamNameIn').addEventListener('change', async e => {
   try { await backend.setTeam(P.team, { name }); backend.log({ type: 'name', team: P.team, text: `Team heet nu “${name}”` }); toast(`Jullie heten nu ${name}`); } catch (err) { toast('Opslaan mislukt'); }
 });
 $('demoPartyBtn').addEventListener('click', () => { $('teamDlg').close(); demoParty(); });
+$('demoNopeBtn').addEventListener('click', () => { $('teamDlg').close(); demoNope(); });
 $('logoutBtn').addEventListener('click', () => { $('teamDlg').close(); P.team = null; P.code = ''; P.seen = null; save(); pickedTeam = null; document.querySelectorAll('[data-team]').forEach(x => x.setAttribute('aria-pressed', 'false')); paintLogin(); show('login'); });
 
 // Klok en wachttijden elke seconde bijwerken.
