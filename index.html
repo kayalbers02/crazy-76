@@ -150,41 +150,70 @@
   .cs .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; }
   .section-label { margin-top: 8px; }
 
-  /* ---------- Feest: opdracht gehaald ---------- */
-  .party { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: radial-gradient(120% 80% at 50% 42%, var(--pub-glow) 0%, var(--pub) 55%, var(--pub-deep) 100%); overflow: hidden; cursor: pointer; animation: party-in 0.25s ease both; }
+  /* ---------- Feest: een superheld viert de gehaalde opdracht ---------- */
+  .party { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: radial-gradient(120% 80% at 50% 42%, var(--pub-glow) 0%, var(--pub) 55%, var(--pub-deep) 100%); overflow: hidden; cursor: pointer; animation: party-in 0.25s ease both; }
   .party.out { animation: party-out 0.25s ease both; }
-  .party::before { content: ""; position: absolute; inset: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) 10px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 14px; pointer-events: none; }
+  .party::before { content: ""; position: absolute; inset: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) 10px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 14px; pointer-events: none; z-index: 3; }
   #partyClovers { position: absolute; inset: 0; pointer-events: none; }
-  .party-in { position: relative; display: grid; justify-items: center; gap: 10px; width: min(360px, 100%); text-align: center; }
-  .party-title { font: 900 clamp(38px, 12vw, 56px)/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; animation: party-pop 0.5s 0.1s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
-  .party-flavor { font: italic 400 17px/1.3 var(--f-flavor); color: var(--gold); }
-  .party-card { width: min(250px, 80%); border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 5px 0 #000; transform: rotate(-3deg); animation: party-pop 0.5s 0.25s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
-  .party-card .band { justify-content: center; font: 700 17px/1 var(--f-board); letter-spacing: 0.12em; text-transform: uppercase; padding-block: 7px; }
-  .party-pts { padding: 6px 8px 0; font: 700 84px/0.95 var(--f-board); font-variant-numeric: tabular-nums; }
-  .party-unit { padding-bottom: 10px; font: 700 17px/1 var(--f-board); letter-spacing: 0.2em; text-transform: uppercase; }
+  .party-in { position: relative; display: grid; justify-items: center; gap: 8px; width: min(380px, 100%); text-align: center; }
+  .party-in.shake { animation: party-shake 0.5s 0.42s ease-out both; }
+  .party-title { font: 900 clamp(36px, 11.5vw, 54px)/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; animation: party-pop 0.5s 0.1s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+  .party-card { display: flex; align-items: stretch; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 4px 0 #000; transform: rotate(-2deg); animation: party-pop 0.5s 0.25s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+  .party-card .band { display: grid; place-items: center; padding: 6px 12px; border-bottom: 0; border-right: 2px solid var(--ink); font: 700 17px/1.05 var(--f-board); letter-spacing: 0.1em; text-transform: uppercase; }
+  .party-pts { display: flex; align-items: baseline; gap: 6px; padding: 4px 14px 6px; font: 700 46px/1 var(--f-board); font-variant-numeric: tabular-nums; }
+  .party-pts small { font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .party-hero { font: italic 400 17px/1.3 var(--f-flavor); color: var(--gold); min-height: 1.3em; }
   .party-hint { font: 700 10.5px/1 var(--f-display); letter-spacing: 0.2em; text-transform: uppercase; color: var(--on-pub-muted); }
-  .cop { width: min(290px, 74vw); height: auto; margin-top: -4px; overflow: visible; animation: cop-in 0.55s 0.15s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+  /* Het podium: zonnestralen zoals in de portretten, de held, de cijfers en een stripkreet */
+  .stage { --stage-h: min(46vh, 420px); position: relative; display: grid; place-items: end center; width: 100%; height: var(--stage-h); margin-top: 4px; }
+  .rays { position: absolute; left: 50%; top: 52%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(242, 123, 31, 0.5) 0 9deg, rgba(7, 163, 82, 0.35) 9deg 18deg); -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 68%); mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 68%); animation: rays-spin 14s linear infinite, party-in 0.6s ease both; }
+  .ring { position: absolute; left: 50%; bottom: 2%; width: 40%; aspect-ratio: 3.2; transform: translate(-50%, 50%) scale(0); border: 5px solid var(--gold-hi); border-radius: 50%; opacity: 0; }
+  .hero-move { position: relative; height: 100%; display: grid; place-items: end center; will-change: transform; }
+  .hero-bob { height: 100%; display: grid; place-items: end center; transform-origin: 50% 100%; animation: hero-bob 0.36s ease-in-out infinite alternate; }
+  .hero-img { display: block; height: var(--stage-h); width: auto; max-width: none; filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.35)); animation: hero-flip 0.72s steps(1, end) infinite; -webkit-user-drag: none; user-select: none; }
+  .digit { position: absolute; top: 16%; font: 700 60px/1 var(--f-board); color: var(--gold-hi); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 #000; }
+  /* In de sprite is de linkerhand (voor de kijker) omhoog; in spiegelbeeld de rechter. */
+  .digit.d7 { left: 4%; animation: digit-a 0.72s ease-in-out infinite; }
+  .digit.d6 { right: 4%; animation: digit-b 0.72s ease-in-out infinite; }
+  .burst { position: absolute; right: -2%; bottom: 8%; z-index: 2; display: grid; place-items: center; width: 128px; aspect-ratio: 1; padding: 22px; background: var(--g-yellow); color: var(--ink); font: 700 24px/0.95 var(--f-board); letter-spacing: 0.02em; text-transform: uppercase; clip-path: polygon(50% 0%, 61% 16%, 79% 7%, 80% 26%, 98% 28%, 88% 45%, 100% 60%, 82% 66%, 84% 86%, 66% 80%, 56% 100%, 45% 82%, 27% 93%, 25% 73%, 5% 72%, 15% 54%, 0% 40%, 19% 33%, 14% 13%, 34% 18%); filter: drop-shadow(0 3px 0 #000); transform: rotate(12deg); animation: burst-pop 0.45s 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+  .burst.left { right: auto; left: -2%; transform: rotate(-12deg); }
+  .cop { width: auto; height: var(--stage-h); overflow: visible; }
   .cop .ink { stroke: var(--ink); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
   .cop .arm-l { transform-origin: 92px 130px; transform: rotate(14deg); animation: arm-l 0.72s ease-in-out infinite; }
   .cop .arm-r { transform-origin: 168px 130px; transform: rotate(10deg); animation: arm-r 0.72s ease-in-out infinite; }
-  .cop .torso { animation: cop-bob 0.36s ease-in-out infinite alternate; }
   .cop .head { transform-origin: 130px 112px; animation: cop-nod 0.72s ease-in-out infinite; }
-  .cop .digit { font: 700 46px/1 var(--f-board); fill: var(--gold-hi); stroke: var(--ink); stroke-width: 5; paint-order: stroke; text-anchor: middle; }
-  .cop .d7 { transform-origin: 34px 70px; animation: digit-a 0.72s ease-in-out infinite; }
-  .cop .d6 { transform-origin: 226px 70px; animation: digit-b 0.72s ease-in-out infinite; }
+  .stage.fallback .hero-img { animation: none; }
   .clover { position: absolute; top: -40px; left: var(--x); width: var(--s); height: var(--s); background: var(--c); -webkit-mask: var(--clover) center / contain no-repeat; mask: var(--clover) center / contain no-repeat; animation: clover-fall var(--d) var(--w) linear infinite; opacity: 0.9; }
   :root { --clover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-13 -13 26 26'%3E%3Cpath transform='rotate(45)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(135)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(225)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(315)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3C/svg%3E"); }
+
+  /* Vijf binnenkomsten; daarna doet de held het six-seven-gebaar met de handen naar beneden. */
+  .stage[data-anim="pop"] .hero-move { animation: in-pop 0.7s 0.15s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+  .stage[data-anim="vlieg"] .hero-move { animation: in-vlieg 1.7s 0.1s cubic-bezier(0.4, 0, 0.3, 1) both; }
+  .stage[data-anim="landing"] .hero-move { animation: in-landing 0.9s 0.1s cubic-bezier(0.6, 0, 0.9, 0.6) both; }
+  .stage[data-anim="landing"] .ring { animation: ring 0.7s 0.45s ease-out both; }
+  .stage[data-anim="draai"] .hero-move { animation: in-draai 1s 0.1s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+  .stage[data-anim="moonwalk"] .hero-move { animation: in-moonwalk 1.8s 0.1s linear both; }
   @keyframes party-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes party-out { to { opacity: 0; } }
   @keyframes party-pop { from { opacity: 0; transform: scale(0.6) rotate(-10deg); } }
-  @keyframes cop-in { from { opacity: 0; transform: translateY(60px); } }
-  @keyframes cop-bob { from { transform: translateY(0); } to { transform: translateY(4px); } }
+  @keyframes party-shake { 0%, 100% { transform: none; } 15% { transform: translate(-7px, 5px); } 30% { transform: translate(6px, -4px); } 45% { transform: translate(-5px, 3px); } 60% { transform: translate(4px, -2px); } 80% { transform: translate(-2px, 1px); } }
+  @keyframes rays-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  @keyframes hero-flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+  @keyframes hero-bob { from { transform: translateY(0) scaleY(1); } to { transform: translateY(-12px) scaleY(1.02); } }
+  /* Het cijfer is groot zolang de hand aan die kant omhoog is (gelijk met het wisselen van de figuur). */
+  @keyframes digit-a { 0%, 40%, 100% { transform: translateY(-8px) scale(1.25); opacity: 1; } 50%, 90% { transform: translateY(8px) scale(0.85); opacity: 0.5; } }
+  @keyframes digit-b { 0%, 40%, 100% { transform: translateY(8px) scale(0.85); opacity: 0.5; } 50%, 90% { transform: translateY(-8px) scale(1.25); opacity: 1; } }
+  @keyframes burst-pop { from { opacity: 0; scale: 0.2; } to { opacity: 1; scale: 1; } }
+  @keyframes in-pop { from { transform: translateY(115%); } }
+  @keyframes in-vlieg { 0% { transform: translate(-140%, -30%) rotate(28deg) scale(0.7); } 42% { transform: translate(140%, -55%) rotate(28deg) scale(0.7); } 43% { transform: translate(140%, -20%) rotate(-24deg) scale(0.9); } 85% { transform: translate(-6%, 0) rotate(-8deg) scale(1); } 100% { transform: none; } }
+  @keyframes in-landing { 0% { transform: translateY(-160%) scaleY(1.2); } 40% { transform: translateY(0) scale(1.18, 0.78); } 62% { transform: translateY(-5%) scale(0.96, 1.06); } 100% { transform: none; } }
+  @keyframes ring { 0% { opacity: 0.95; transform: translate(-50%, 50%) scale(0.3); } 100% { opacity: 0; transform: translate(-50%, 50%) scale(3.4); } }
+  @keyframes in-draai { 0% { transform: scale(0) rotate(-720deg); } 70% { transform: scale(1.12) rotate(0deg); } 100% { transform: none; } }
+  @keyframes in-moonwalk { 0% { transform: translateX(150%) skewX(-10deg); } 55% { transform: translateX(-45%) skewX(-10deg); } 60% { transform: translateX(-45%) skewX(0deg); } 100% { transform: none; } }
   @keyframes cop-nod { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
-  /* Six-seven, maar dan met de handen naar beneden: links omhoog als rechts omlaag gaat. */
   @keyframes arm-l { 0%, 100% { transform: rotate(24deg); } 50% { transform: rotate(-12deg); } }
   @keyframes arm-r { 0%, 100% { transform: rotate(12deg); } 50% { transform: rotate(-24deg); } }
-  @keyframes digit-a { 0%, 100% { transform: translateY(-8px) scale(1.25); opacity: 1; } 50% { transform: translateY(8px) scale(0.85); opacity: 0.55; } }
-  @keyframes digit-b { 0%, 100% { transform: translateY(8px) scale(0.85); opacity: 0.55; } 50% { transform: translateY(-8px) scale(1.25); opacity: 1; } }
   @keyframes clover-fall { from { transform: translateY(-5vh) rotate(0deg); } to { transform: translateY(112vh) rotate(540deg); } }
 
   @media (max-width: 370px) { .stat .big { font-size: 34px; } .timer-value { font-size: 26px; } .wordmark { font-size: 22px; } .seg button { font-size: 9.5px; } }
@@ -324,6 +353,7 @@
         <input id="teamNameIn" maxlength="24" autocomplete="off">
       </div>
       <p class="fine" id="teamInfo"></p>
+      <button type="button" class="btn ghost" id="demoPartyBtn">Bekijk een feestje</button>
       <button type="button" class="btn ghost" id="logoutBtn">Ander team kiezen</button>
     </form>
   </dialog>
@@ -337,11 +367,9 @@
 
   <div class="party" id="party" role="alertdialog" aria-label="Opdracht gehaald" hidden>
     <div id="partyClovers" aria-hidden="true"></div>
-    <div class="party-in">
-      <p class="party-title gilded">Gehaald!</p>
-      <p class="party-flavor" id="partyFlavor"></p>
-      <div class="party-card" id="partyCard"><div class="band" id="partyBand">Opdracht</div><p class="party-pts" id="partyPts">+1</p><p class="party-unit" id="partyUnit">punten</p></div>
-      <svg class="cop" viewBox="0 0 260 300" aria-hidden="true">
+    <div class="party-in" id="partyIn"></div>
+  </div>
+  <template id="copTpl"><svg class="cop" viewBox="0 0 260 300" aria-hidden="true">
         <ellipse cx="130" cy="288" rx="72" ry="8" fill="rgba(0,0,0,.35)"/>
         <g class="ink">
           <rect x="100" y="204" width="26" height="68" rx="6" fill="#123a82"/>
@@ -393,12 +421,7 @@
             <circle cx="130" cy="37" r="8" fill="#d9b35a"/>
           </g>
         </g>
-        <text class="digit d7" x="34" y="86">7</text>
-        <text class="digit d6" x="226" y="86">6</text>
-      </svg>
-      <p class="party-hint">Tik om door te gaan</p>
-    </div>
-  </div>
+      </svg></template>
 
   <input type="file" id="fileIn" accept="image/*,video/*" multiple hidden>
   <input type="file" id="audioIn" accept="audio/*" hidden>
@@ -491,6 +514,7 @@ function onData() {
     return;
   }
   document.body.dataset.team = P.team;
+  warmHeroes();
   if (!inMain) { show('main'); if (!listBuilt) buildList(); setView(P.view, false); }
   paintAll();
   if (subsReady) checkEvents();
@@ -738,6 +762,8 @@ let hashDone = false;
 function openFromHash() {
   if (hashDone || !subsReady) return;
   hashDone = true;
+  const f = /^#feest(?:-(\w+))?$/.exec(location.hash);
+  if (f) { demoParty(f[1]); return; }
   const m = /^#opdracht-(\d+)$/.exec(location.hash);
   if (m && C.BY_NR.has(Number(m[1]))) openTask(Number(m[1]));
 }
@@ -955,13 +981,23 @@ function checkEvents() {
   if (openNr != null && dlg.open && !busy) renderTask();
 }
 
-// ---------- Feest: de agent doet six-seven met de handen naar beneden ----------
-const FLAVORS = ['De begeleiders keuren het goed. Sláinte!', 'Die is binnen. Op naar de volgende.', 'Goedgekeurd door het hoofdkwartier.', 'Netjes gespeeld. De bank betaalt uit.'];
+// ---------- Feest: een superheld doet six-seven met de handen naar beneden ----------
+// De figuren staan in helden/<id>.webp. De tweede stand van het gebaar is dezelfde figuur in spiegelbeeld.
+const HEROES = [
+  { id: 'kay', hero: 'Captain Eire' },
+];
+const ANIMS = ['pop', 'vlieg', 'landing', 'draai', 'moonwalk'];
+const BURSTS = ['Bam!', 'Sláinte!', 'Pow!', 'Craic!', 'Kaboem!', 'Jawel!', 'Boem!'];
+const FLAVORS = ['viert het met jullie.', 'keurt het goed.', 'doet de zeven-zes.', 'is trots op jullie.', 'komt even langs.'];
 const partyQueue = [];
-let partyTimer = 0, partyOpen = false;
-function celebrate(nr, pts) {
+let partyTimer = 0, partyOpen = false, lastHero = -1, lastAnim = -1;
+const pickOther = (n, last) => { let i = Math.floor(Math.random() * n); if (n > 1 && i === last) i = (i + 1) % n; return i; };
+let heroesWarm = false;
+function warmHeroes() { if (heroesWarm) return; heroesWarm = true; HEROES.forEach(h => { const i = new Image(); i.src = `helden/${h.id}.webp`; }); }
+
+function celebrate(nr, pts, demo) {
   if (busy) { toast(`Opdracht ${nr} goedgekeurd: +${pts} ${pts === 1 ? 'punt' : 'punten'}!`, null, null, 6000); return; }
-  partyQueue.push({ nr, pts });
+  partyQueue.push({ nr, pts, demo });
   if (!partyOpen) nextParty();
 }
 function nextParty() {
@@ -971,32 +1007,54 @@ function nextParty() {
   if (!item) {
     partyOpen = false;
     el.classList.add('out');
-    setTimeout(() => { el.hidden = true; el.classList.remove('out'); $('partyClovers').innerHTML = ''; }, 240);
+    setTimeout(() => { el.hidden = true; el.classList.remove('out'); $('partyClovers').innerHTML = ''; $('partyIn').innerHTML = ''; }, 240);
     return;
   }
   partyOpen = true;
   // Een open kaart of bewijsvenster ligt anders bovenop het feest.
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   const t = C.BY_NR.get(item.nr);
-  $('partyCard').className = `party-card g${t.cat}`;
-  $('partyBand').textContent = `Opdracht ${item.nr}`;
-  $('partyPts').textContent = `+${item.pts}`;
-  $('partyUnit').textContent = item.pts === 1 ? 'punt' : 'punten';
-  $('partyFlavor').textContent = FLAVORS[Math.floor(Math.random() * FLAVORS.length)];
-  const colors = ['var(--gold)', 'var(--gold-hi)', 'var(--ok)', 'var(--foam)'];
+  lastHero = pickOther(HEROES.length, lastHero);
+  lastAnim = item.anim != null ? item.anim : pickOther(ANIMS.length, lastAnim);
+  const hero = HEROES[lastHero], anim = ANIMS[lastAnim];
+  const burst = BURSTS[Math.floor(Math.random() * BURSTS.length)];
+  const inner = $('partyIn');
+  inner.className = `party-in${anim === 'landing' ? ' shake' : ''}`;
+  inner.innerHTML = `
+    <p class="party-title gilded">Gehaald!</p>
+    <div class="party-card g${t.cat}"><div class="band">Opdracht ${item.nr}</div><p class="party-pts">+${item.pts} <small>${item.pts === 1 ? 'punt' : 'punten'}</small></p></div>
+    <div class="stage" data-anim="${anim}">
+      <div class="rays" aria-hidden="true"></div>
+      <div class="ring" aria-hidden="true"></div>
+      <div class="hero-move"><div class="hero-bob">${hero ? `<img class="hero-img" src="helden/${hero.id}.webp" alt="${C.esc(hero.hero)}" draggable="false">` : ''}</div></div>
+      <span class="digit d7" aria-hidden="true">7</span><span class="digit d6" aria-hidden="true">6</span>
+      <span class="burst${Math.random() < 0.5 ? ' left' : ''}" aria-hidden="true">${C.esc(burst)}</span>
+    </div>
+    <p class="party-hero">${hero ? `${C.esc(hero.hero)} ${FLAVORS[Math.floor(Math.random() * FLAVORS.length)]}` : 'Goedgekeurd door het hoofdkwartier.'}</p>
+    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p>`;
+  // Geen figuur (nog niet geladen, geen bereik)? Dan springt de agent in.
+  const useCop = () => { const bob = inner.querySelector('.hero-bob'); bob.innerHTML = ''; bob.appendChild($('copTpl').content.cloneNode(true)); inner.querySelector('.stage').classList.add('fallback'); };
+  const img = inner.querySelector('.hero-img');
+  if (img) img.addEventListener('error', useCop, { once: true }); else useCop();
+  const colors = ['var(--gold)', 'var(--gold-hi)', 'var(--ok)', 'var(--foam)', 'var(--g-orange)'];
   $('partyClovers').innerHTML = Array.from({ length: 18 }, (_, i) => {
     const r = n => Math.random() * n;
     return `<i class="clover" style="--x:${Math.round(r(96))}%;--s:${Math.round(14 + r(20))}px;--c:${colors[i % colors.length]};--d:${(3.4 + r(3)).toFixed(2)}s;--w:-${r(6).toFixed(2)}s"></i>`;
   }).join('');
   el.classList.remove('out');
   el.hidden = false;
-  const inner = el.querySelector('.party-in');
-  inner.replaceWith(inner.cloneNode(true)); // animaties opnieuw laten starten
   buzz([30, 60, 30, 60, 60]);
-  partyTimer = setTimeout(nextParty, 4800);
+  partyTimer = setTimeout(nextParty, 5600);
 }
 $('party').addEventListener('click', nextParty);
 document.addEventListener('keydown', e => { if (partyOpen && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) nextParty(); });
+// Voorbeeld bekijken zonder te spelen: knop bij "Jullie team", of #feest achter het adres (ook #feest-landing enz.).
+function demoParty(animName) {
+  const t = C.TASKS[Math.floor(Math.random() * C.TASKS.length)];
+  const i = ANIMS.indexOf(animName);
+  partyQueue.push({ nr: t.nr, pts: t.pts, demo: true, anim: i >= 0 ? i : null });
+  if (!partyOpen) nextParty();
+}
 
 // ---------- Team-dialoog ----------
 $('teamBtn').addEventListener('click', () => {
@@ -1010,6 +1068,7 @@ $('teamNameIn').addEventListener('change', async e => {
   if (!name || name === team().name) return;
   try { await backend.setTeam(P.team, { name }); backend.log({ type: 'name', team: P.team, text: `Team heet nu “${name}”` }); toast(`Jullie heten nu ${name}`); } catch (err) { toast('Opslaan mislukt'); }
 });
+$('demoPartyBtn').addEventListener('click', () => { $('teamDlg').close(); demoParty(); });
 $('logoutBtn').addEventListener('click', () => { $('teamDlg').close(); P.team = null; P.code = ''; P.seen = null; save(); pickedTeam = null; document.querySelectorAll('[data-team]').forEach(x => x.setAttribute('aria-pressed', 'false')); paintLogin(); show('login'); });
 
 // Klok en wachttijden elke seconde bijwerken.
