@@ -8,150 +8,165 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Crazy 76 HQ">
-<meta name="theme-color" content="#1F4D2B">
+<meta name="theme-color" content="#0a2e1d">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <title>Crazy 76 Begeleiders</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@700;800&family=Uncial+Antiqua&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=Cinzel:wght@700;800;900&family=Libre+Caslon+Text:ital@1&display=swap">
 <link rel="stylesheet" href="../shared/ui.css">
 <style>
-  .app { max-width: 1040px; margin-inline: auto; padding-inline: 16px; padding-block: 0 calc(112px + env(safe-area-inset-bottom, 0px)); }
-  .gate { display: grid; gap: 22px; min-height: 100dvh; max-width: 480px; padding-block: calc(40px + env(safe-area-inset-top, 0px)) 40px; align-content: start; }
-  .gate .wordmark { font-size: 44px; color: var(--green); }
-  .gate .wordmark .gold { color: var(--gold); }
-  .gate h1 { font-family: var(--f-num); font-weight: 800; font-size: 30px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--green); line-height: 1.05; }
-  .gate code { padding: 2px 6px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; }
+  .app { max-width: 1040px; margin-inline: auto; padding-inline: 16px; padding-block: 0 calc(116px + env(safe-area-inset-bottom, 0px)); }
+  .gate { max-width: 480px; padding-inline: 12px; }
+  .gate::before { content: ""; position: fixed; inset: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) 10px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 14px; pointer-events: none; }
+  .gate::after { content: ""; position: fixed; inset: calc(max(10px, env(safe-area-inset-top, 0px)) + 5px) 15px calc(max(10px, env(safe-area-inset-bottom, 0px)) + 5px) 15px; border: 1px solid rgba(217, 179, 90, 0.28); border-radius: 9px; pointer-events: none; }
 
-  /* ---------- Kop ---------- */
-  .top { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding-inline: 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px; background: var(--bar); color: var(--bar-ink); }
+  /* ---------- Kop: de gevel met het scorebord ---------- */
+  .top { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; background: linear-gradient(180deg, #0e3d27, var(--pub-bar)); color: var(--foam); border-bottom: 1.5px solid rgba(217, 179, 90, 0.6); box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.8); }
   .top-in { max-width: 1040px; margin-inline: auto; display: grid; gap: 10px; }
   .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  .role { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bar-muted); }
-  .board { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 14px; }
-  .tscore { display: grid; gap: 3px; min-width: 0; }
-  .tscore .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--bar-muted); }
-  .tscore .nm.A { color: var(--bar-gold); }
-  .tscore .nm.B { color: #9FC1F5; }
-  .tscore .big { font-family: var(--f-num); font-weight: 800; font-size: 40px; line-height: 0.85; font-variant-numeric: tabular-nums; }
-  .tscore .sml { font-size: 12px; color: var(--bar-muted); }
-  .timer { justify-self: end; display: grid; justify-items: end; gap: 3px; min-height: 52px; padding: 7px 12px; border: 0; border-radius: 12px; background: var(--bar-hi); color: var(--bar-ink); }
-  .timer-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bar-muted); white-space: nowrap; }
-  .timer-value { font-family: var(--f-num); font-weight: 800; font-size: 28px; line-height: 0.9; font-variant-numeric: tabular-nums; }
-  .timer[data-phase="idle"] { background: var(--bar-gold); color: #15241A; }
-  .timer[data-phase="idle"] .timer-label { color: #15241A; }
-  .timer[data-phase="soon"] .timer-value { color: var(--bar-gold); }
-  .timer[data-phase="over"] { background: var(--bar-red); }
-  .timer[data-phase="over"] .timer-label { color: var(--bar-ink); }
-  body.mock .top::after { content: "Demo: alles blijft in deze browser"; display: block; margin: 10px -16px -10px; padding: 3px 16px; background: var(--bar-gold); color: #15241A; font-size: 12px; font-weight: 700; text-align: center; }
+  .role { font: 700 10.5px/1 var(--f-display); letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); }
+  .board { display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 8px; align-items: stretch; }
+  .tscore, .timer { display: grid; align-content: start; min-width: 0; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; text-align: center; }
+  .tscore .nm { padding: 5px 6px; border-bottom: 2px solid var(--ink); color: #fff; font: 700 13px/1 var(--f-board); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tscore .nm.A { background: var(--team-a); }
+  .tscore .nm.B { background: var(--team-b); }
+  .tscore .big { padding: 5px 4px 2px; font: 700 38px/0.95 var(--f-board); font-variant-numeric: tabular-nums; }
+  .tscore .sml { padding: 0 4px 6px; font-size: 11.5px; line-height: 1.25; color: var(--on-board-muted); }
+  .timer { padding: 0; font: inherit; }
+  .timer-label { padding: 5px 6px; border-bottom: 2px solid var(--ink); background: var(--ink); color: #fff; font: 700 12.5px/1 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .timer-value { align-self: center; padding: 8px 4px; font: 700 31px/0.95 var(--f-board); font-variant-numeric: tabular-nums; }
+  /* Klok nog niet gestart: het START-vak van het bord */
+  .timer[data-phase="idle"] .timer-label { background: var(--g-red); font-size: 14px; }
+  .timer[data-phase="idle"] .timer-value { color: var(--g-red); }
+  .timer[data-phase="soon"] .timer-label { background: var(--wait); color: var(--ink); }
+  .timer[data-phase="over"] .timer-label { background: var(--no); }
+  .timer[data-phase="over"] .timer-value { color: var(--no); }
+  .timer[data-phase="closed"] .timer-label { background: var(--on-board-muted); }
+  body.mock .top::after { content: "Demo: alles blijft in deze browser"; display: block; margin: 10px -16px -10px; padding: 3px 16px; background: var(--gold); color: var(--ink); font: 700 13px/1.3 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+  .pill-live { display: inline-flex; align-items: center; gap: 6px; font: 700 10.5px/1 var(--f-display); letter-spacing: 0.18em; text-transform: uppercase; color: var(--on-pub-muted); }
+  .pill-live i { width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.25); }
 
   /* ---------- Weergaven ---------- */
-  .view { display: grid; gap: 14px; padding-block: 16px; }
+  .view { display: grid; gap: 14px; padding-block: 18px; }
   .view-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .view-head h2 { font-family: var(--f-num); font-weight: 800; font-size: 26px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--green); line-height: 1; }
-  .view-head .sml { font-size: 13px; color: var(--muted); }
-  .cards { display: grid; gap: 12px; }
+  .view-head h2 { font: 800 22px/1.1 var(--f-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .view-head .sml { font-size: 13px; color: var(--on-pub-muted); }
+  .cards { display: grid; gap: 14px; align-items: start; }
   @media (min-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
-  .card { display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
-  .card.A { border-left: 5px solid var(--team-a); }
-  .card.B { border-left: 5px solid var(--team-b); }
+  .card { display: grid; gap: 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
+  .card[data-sub] { padding: 0 14px 14px; }
+  .card[data-sub]::before { content: ""; height: 16px; margin-inline: -14px; border-bottom: 2px solid var(--ink); background: var(--g); }
   .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .card-head .nr { font-family: var(--f-num); font-weight: 800; font-size: 26px; line-height: 1; color: var(--green); }
-  .card-head .since { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
-  .card .text { font-size: 15px; line-height: 1.4; }
-  .card .text b { color: var(--green); }
-  .card .note { padding: 8px 10px; border-radius: 8px; background: var(--ground); font-size: 14px; }
-  .card .proofline { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; color: var(--muted); }
-  .card .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
-  .empty { padding: 40px 12px; text-align: center; color: var(--muted); text-wrap: balance; }
+  .card-head .nr { font: 700 30px/1 var(--f-board); font-variant-numeric: tabular-nums; }
+  .card-head .nr::before { content: "Nr. "; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-board-muted); }
+  .card-head .since { margin-left: auto; font: 700 14px/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-board-muted); white-space: nowrap; }
+  .text { font-size: 15.5px; line-height: 1.4; }
+  .text b { font: 700 1.04em/1.2 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; }
+  .note { padding: 8px 10px; border: 2px dashed var(--g-lblue); border-radius: 6px; background: var(--board-hi); font: italic 400 15px/1.35 var(--f-flavor); }
+  .proofline { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 700 14px/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-board-muted); }
+  .card .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+  .empty { padding: 40px 12px; text-align: center; color: var(--on-pub-muted); text-wrap: balance; }
 
   /* ---------- Team ---------- */
-  .team-head { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
-  .team-head.A { border-top: 6px solid var(--team-a); }
-  .team-head.B { border-top: 6px solid var(--team-b); }
+  .team-head { display: grid; gap: 12px; padding: 0 14px 14px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
+  .team-head::before { content: ""; height: 18px; margin-inline: -14px; border-bottom: 2px solid var(--ink); }
+  .team-head.A::before { background: var(--team-a); }
+  .team-head.B::before { background: var(--team-b); }
+  .team-head .eyebrow { color: var(--on-board-muted); font: 700 13px/1.2 var(--f-board); letter-spacing: 0.1em; }
   .team-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .team-top .nm { font-family: var(--f-num); font-weight: 800; font-size: 30px; line-height: 1; }
-  .team-top .tot { font-family: var(--f-num); font-weight: 800; font-size: 56px; line-height: 0.85; color: var(--green); font-variant-numeric: tabular-nums; text-align: right; }
-  .team-top .sml { font-size: 13px; color: var(--muted); }
-  .ctl { display: grid; gap: 10px; }
+  .team-top .nm { font: 700 32px/1 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+  .team-top .tot { font: 700 60px/0.85 var(--f-board); font-variant-numeric: tabular-nums; text-align: right; }
+  .team-top .sml { font-size: 13px; color: var(--on-board-muted); }
+  .ctl { display: grid; gap: 8px; }
   @media (min-width: 700px) { .ctl { grid-template-columns: 1fr 1fr; } }
-  .ctl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--ground); }
+  .ctl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 11px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--board-hi); }
   .ctl-row .lab { display: grid; gap: 2px; min-width: 0; }
-  .ctl-row .lab b { font-size: 14px; }
-  .ctl-row .lab span { font-size: 12px; color: var(--muted); }
-  .ctl-row select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font-size: 14px; max-width: 46%; }
-  .pen-list { display: grid; gap: 6px; }
-  .pen { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 14px; font-weight: 700; }
-  .pen button { border: 0; background: transparent; color: inherit; font-size: 18px; }
-  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
+  .ctl-row .lab b { font: 700 16px/1.1 var(--f-board); letter-spacing: 0.04em; text-transform: uppercase; }
+  .ctl-row .lab span { font-size: 12.5px; color: var(--on-board-muted); }
+  .ctl-row select { max-width: 46%; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 6px; background: #f6fcfa; color: var(--ink); font: 600 15px/1.2 var(--f-body); }
+  .pen-list { display: grid; gap: 6px; justify-items: start; }
+  .pen { justify-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px; border: 2px solid var(--no); border-radius: 6px; background: var(--no-soft); color: #8f1511; font: 700 16px/1.1 var(--f-board); letter-spacing: 0.04em; text-transform: uppercase; }
+  .pen button { border: 0; background: transparent; color: inherit; font-size: 20px; line-height: 1; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; padding-block: 2px; }
   .chips::-webkit-scrollbar { display: none; }
-  .chips button { flex: none; min-height: 34px; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
-  .chips button[aria-pressed="true"] { background: var(--green); color: var(--on-green); border-color: var(--green); }
-  .trow { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding-block: 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
-  .trow .nr { font-family: var(--f-num); font-weight: 800; font-size: 20px; color: var(--muted); text-align: right; }
-  .trow .tx { font-size: 14px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .trow .tx b { color: var(--green); }
-  .trow .tx small { color: var(--muted); }
-  .trow.approved .nr { color: var(--green); }
-  .trow.rejected .tx { color: var(--muted); }
+  .chips button { flex: none; min-height: 36px; padding: 5px 12px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 999px; background: rgba(0, 0, 0, 0.25); color: var(--on-pub-muted); font: 700 10.5px/1 var(--f-display); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+  .chips button span { font: 700 15px/1 var(--f-board); letter-spacing: 0; }
+  .chips button[aria-pressed="true"] { background: var(--foam); color: var(--ink); border-color: var(--foam); }
+  .tlist { display: grid; gap: 6px; }
+  .trow { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px; padding-right: 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; cursor: pointer; }
+  .trow .nr { align-self: stretch; display: grid; place-items: center; border-right: 2px solid var(--ink); background: var(--g); color: var(--g-ink); font: 700 20px/1 var(--f-board); font-variant-numeric: tabular-nums; }
+  .trow .tx { margin-block: 8px; font-size: 14px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .trow .tx b { font: 700 1.04em/1.2 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; }
+  .trow .tx small { color: var(--on-board-muted); }
+  .trow.rejected .nr { background: repeating-linear-gradient(-45deg, #8d8d8d 0 8px, #787878 8px 16px); color: #fff; }
+  .trow.rejected .tx, .trow.approved .tx { color: var(--on-board-muted); }
 
   /* ---------- Stand ---------- */
   .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .vs .card .nm { font-family: var(--f-num); font-weight: 800; font-size: 24px; line-height: 1; }
-  .vs .card .tot { font-family: var(--f-num); font-weight: 800; font-size: 60px; line-height: 0.85; font-variant-numeric: tabular-nums; }
-  .vs .card.A .tot { color: var(--team-a); }
-  .vs .card.B .tot { color: var(--team-b); }
-  .vs .card.lead { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
-  .two { display: grid; gap: 14px; }
+  .vs .card { gap: 4px; padding-bottom: 12px; text-align: center; }
+  .vs .card .eyebrow { padding: 6px; border-bottom: 2px solid var(--ink); color: #fff; font: 700 14px/1 var(--f-board); letter-spacing: 0.1em; }
+  .vs .card.A .eyebrow { background: var(--team-a); }
+  .vs .card.B .eyebrow { background: var(--team-b); }
+  .vs .card .nm { padding: 8px 8px 0; font: 700 22px/1.05 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+  .vs .card .tot { font: 700 68px/0.9 var(--f-board); font-variant-numeric: tabular-nums; }
+  .vs .card .fine { padding-inline: 8px; }
+  .vs .card.lead { box-shadow: 0 0 0 3px var(--gold-hi), 0 3px 0 rgba(0, 0, 0, 0.6); }
+  .two { display: grid; gap: 16px; align-items: start; }
   @media (min-width: 760px) { .two { grid-template-columns: 1fr 1fr; } }
   .cats-score { display: grid; gap: 10px; }
   .cs { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
-  .cs-name { font-weight: 700; font-size: 14px; }
-  .cs-num { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cs-name { font: 700 15px/1.1 var(--f-board); letter-spacing: 0.05em; text-transform: uppercase; color: var(--foam); }
+  .cs-name::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 1.5px solid var(--gold-hi); background: var(--g); }
+  .cs-num { font-size: 13px; color: var(--on-pub-muted); font-variant-numeric: tabular-nums; }
   .cs .bar { grid-column: 1 / -1; }
   .log { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-  .log li { display: grid; grid-template-columns: 44px 1fr; gap: 10px; font-size: 14px; }
-  .log time { font-family: var(--f-num); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .log li { display: grid; grid-template-columns: 46px 1fr; gap: 10px; font-size: 14px; color: var(--foam); }
+  .log time { font: 700 15px/1.3 var(--f-board); color: var(--gold); font-variant-numeric: tabular-nums; }
+  .log b { font-weight: 600; }
 
-  /* ---------- Instellingen ---------- */
-  .settings { display: grid; gap: 14px; max-width: 560px; }
-  .danger-zone { padding: 14px; border: 1px solid var(--red); border-radius: 14px; display: grid; gap: 10px; }
+  /* ---------- Instellingen: een kaart op het bord ---------- */
+  .settings { display: grid; gap: 14px; max-width: 560px; padding: 16px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
+  .settings .fine { color: var(--on-board-muted); }
+  .danger-zone { display: grid; gap: 10px; padding: 14px; border: 2.5px dashed var(--no); border-radius: 6px; background: var(--board-hi); }
+  .danger-zone b { font: 700 18px/1 var(--f-board); letter-spacing: 0.05em; text-transform: uppercase; color: var(--no); }
 
+  .sub-dlg .sheet-head { align-items: center; margin: -18px -18px 0; padding: 10px 12px 10px 16px; border-bottom: 2px solid var(--ink); background: var(--g, var(--board-lo)); color: var(--g-ink, var(--ink)); }
+  .sub-dlg .sheet-head h2 { color: inherit; margin-bottom: 6px; }
   .reasons { display: grid; gap: 6px; }
-  .reasons button { text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); font-size: 14px; }
-  .reasons button[aria-pressed="true"] { border-color: var(--red); background: var(--red-soft); color: var(--red); font-weight: 700; }
-  .lb-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
-  .pill-live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--bar-muted); }
-  .pill-live i { width: 8px; height: 8px; border-radius: 50%; background: #74C28F; }
+  .reasons button { text-align: left; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board-hi); color: var(--ink); font-size: 15px; font-weight: 500; }
+  .reasons button[aria-pressed="true"] { border-color: var(--no); background: var(--no-soft); color: #8f1511; font-weight: 600; }
+  .lb-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+  @media (max-width: 420px) { .brand .role { display: none; } .tscore .big { font-size: 32px; } .timer-value { font-size: 26px; } }
 </style>
 </head>
 <body>
 <div class="app">
 
   <section class="gate" id="viewSetup" hidden>
-    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
     <h1>Nog niet gekoppeld</h1>
     <p>Er staan nog geen Firebase-gegevens in <code>shared/config.js</code>.</p>
     <a class="btn ghost" href="?mock=1">Oefenen zonder koppeling</a>
   </section>
 
   <section class="gate" id="viewWait">
-    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
     <h1>Verbinden…</h1>
     <p class="fine" id="waitText">Even geduld, het dashboard haalt de stand op.</p>
   </section>
 
   <section class="gate" id="viewLogin" hidden>
-    <p class="wordmark">Crazy <span class="gold">76</span></p>
+    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
     <h1>Begeleiders</h1>
     <div class="field">
       <label class="field-label" for="pinIn">Pincode begeleiders</label>
       <input id="pinIn" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Pincode">
       <p class="error" id="loginErr" hidden></p>
-      <p class="help">Standaard 7676. Verander hem straks bij Instellingen.</p>
+      <p class="help">Verander de pincode straks bij Meer.</p>
     </div>
     <button type="button" class="btn primary block" id="loginBtn">Naar het dashboard</button>
     <p class="fine">Team? Ga naar <a href="../">de teamapp</a>.</p>
@@ -161,7 +176,7 @@
     <header class="top">
       <div class="top-in">
         <div class="brand-row">
-          <p class="brand"><span class="wordmark">Crazy <span class="gold">76</span></span><span class="role">Begeleiders</span></p>
+          <p class="brand"><span class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></span><span class="role">Begeleiders</span></p>
           <span class="pill-live" id="live"><i></i>live</span>
         </div>
         <div class="board">
@@ -402,7 +417,7 @@ function subCard(s, now) {
   const t = C.BY_NR.get(s.nr);
   const dub = teams[s.team].dubbel === s.nr;
   return `
-    <article class="card ${s.team}" data-sub="${s.id}">
+    <article class="card ${s.team} g${t.cat}" data-sub="${s.id}">
       <div class="card-head">
         <span class="chip team-${s.team}">${C.esc(teamName(s.team))}</span>
         <span class="nr">${s.nr}</span>
@@ -415,7 +430,7 @@ function subCard(s, now) {
       <div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span>${(s.media || []).length} bestand${(s.media || []).length === 1 ? '' : 'en'}</span><span>${t.pts} pt${dub ? ' × 2' : ''}</span></div>
       <div class="actions">
         <button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>
-        <button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>
+        <button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>
       </div>
     </article>`;
 }
@@ -470,7 +485,7 @@ function paintTeam(id) {
     <div class="chips">${['all', 'open', 'pending', 'approved', 'rejected'].map(f => `<button type="button" data-tf="${id}" data-f="${f}" aria-pressed="${filter === f}">${f === 'all' ? 'Alles' : STATUS[f]} <span>${f === 'all' ? '' : C.TASKS.filter(x => C.taskStatus(subOf(id, x.nr)) === f).length}</span></button>`).join('')}</div>
     <div class="tlist">
       ${rows.map(x => { const s = subOf(id, x.nr); const st = C.taskStatus(s); return `
-        <div class="trow ${st}" data-open="${id}:${x.nr}" role="button" tabindex="0">
+        <div class="trow g${x.cat} ${st}" data-open="${id}:${x.nr}" role="button" tabindex="0">
           <span class="nr">${x.nr}</span>
           <p class="tx">${C.rich(x.text)} <small>· ${x.pts} pt${t.dubbel === x.nr ? ' ×2' : ''}${s && s.status === 'rejected' && s.reviewNote ? ' · ' + C.esc(s.reviewNote) : ''}</small></p>
           <span class="chip st-${st}">${st === 'approved' ? ICON.check + ' +' + ptsFor(id, x.nr) : st === 'rejected' ? ICON.x + ' 0' : st === 'pending' ? 'wacht' : 'open'}</span>
@@ -502,7 +517,7 @@ function paintStand() {
       <p class="fine">max. nog ${sc[id].maxReachable}</p>
     </div>`).join('');
   $('ledgers').innerHTML = ['A', 'B'].map(id => `<div><p class="h-cat" style="margin-bottom:8px">${C.esc(teamName(id))}</p>${ledgerHTML(id, sc[id])}</div>`).join('');
-  $('catsBoth').innerHTML = ['A', 'B'].map(id => `<div class="cats-score"><p class="eyebrow">${C.esc(teamName(id))} per categorie</p>${C.catScore(id, subs).map(c => `<div class="cs"><span class="cs-name">${C.esc(c.title)}</span><span class="cs-num">${c.done}/${c.n} · ${c.pts}/${c.max} pt</span><div class="bar" aria-hidden="true"><span style="width:${c.pts / c.max * 100}%"></span></div></div>`).join('')}</div>`).join('');
+  $('catsBoth').innerHTML = ['A', 'B'].map(id => `<div class="cats-score"><p class="eyebrow">${C.esc(teamName(id))} per categorie</p>${C.catScore(id, subs).map((c, i) => `<div class="cs g${i}"><span class="cs-name">${C.esc(c.title)}</span><span class="cs-num">${c.done}/${c.n} · ${c.pts}/${c.max} pt</span><div class="bar" aria-hidden="true"><span style="width:${c.pts / c.max * 100}%"></span></div></div>`).join('')}</div>`).join('');
 }
 function paintLog() {
   $('log').innerHTML = logs.slice(0, 60).map(l => `<li><time>${F.hhmm(l.at)}</time><span>${l.team ? `<b>${C.esc(teamName(l.team))}</b> · ` : ''}${C.esc(l.text || l.type)}</span></li>`).join('') || '<li><span class="fine">Nog niets gebeurd.</span></li>';
@@ -591,14 +606,15 @@ let openSub = null; // {team, nr}
 function renderSub() {
   const { team, nr } = openSub;
   const t = C.BY_NR.get(nr);
+  $('subDlg').className = `sub-dlg g${t.cat}`;
   const s = subOf(team, nr);
   const st = C.taskStatus(s);
   const dub = teams[team].dubbel === nr;
   let actions = '';
   if (st === 'open') actions = `<p class="notice grey">Nog niet ingestuurd door ${C.esc(teamName(team))}.</p><button type="button" class="btn ghost" data-manual="${team}:${nr}">Goedkeuren zonder bewijs (+${ptsFor(team, nr)})</button>`;
-  else if (st === 'pending') actions = `<div class="grid2"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(team, nr)}</button></div>`;
+  else if (st === 'pending') actions = `<div class="grid2"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(team, nr)}</button></div>`;
   else if (st === 'approved') actions = `<div class="grid2"><button type="button" class="btn ghost" data-pending="${s.id}">Terug in de wachtrij</button><button type="button" class="btn danger" data-reject="${s.id}">Alsnog afkeuren</button></div>`;
-  else actions = `<div class="grid2"><button type="button" class="btn ghost" data-reopen="${s.id}">Heropenen</button><button type="button" class="btn primary" data-approve="${s.id}">Alsnog goedkeuren +${ptsFor(team, nr)}</button></div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`;
+  else actions = `<div class="grid2"><button type="button" class="btn ghost" data-reopen="${s.id}">Heropenen</button><button type="button" class="btn ok" data-approve="${s.id}">Alsnog goedkeuren +${ptsFor(team, nr)}</button></div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`;
   $('subBody').innerHTML = `
     <div class="sheet-head"><div><h2 id="subTitle">Opdracht ${nr}</h2><span class="chip team-${team}">${C.esc(teamName(team))}</span> <span class="chip st-${st}">${STATUS[st]}</span>${dub ? ' <span class="chip st-pending">×2 dubbel</span>' : ''}</div><button type="button" class="icon-btn" data-close aria-label="Sluiten">×</button></div>
     <p class="text">${C.rich(t.text)}</p>
@@ -624,7 +640,7 @@ function openLightbox(s, start) {
     </div>`).join('');
   const act = $('lbActions');
   act.hidden = s.status !== 'pending';
-  act.innerHTML = s.status === 'pending' ? `<button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn primary" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>` : '';
+  act.innerHTML = s.status === 'pending' ? `<button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>` : '';
   $('lightbox').showModal();
   const el = $(`lb-${start}`); if (el && start) el.scrollIntoView();
 }

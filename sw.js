@@ -1,5 +1,5 @@
 // Crazy 76: de app-schil werkt offline na het eerste bezoek. Scores en bewijs gaan altijd via internet.
-const CACHE = 'crazy-76-v5';
+const CACHE = 'crazy-76-v6';
 const CORE = ['./', 'index.html', 'begeleiders/', 'begeleiders/index.html', 'begeleiders/manifest.webmanifest',
   'shared/ui.css', 'shared/tasks.js', 'shared/rules.js', 'shared/config.js', 'shared/backend.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
