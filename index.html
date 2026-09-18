@@ -999,7 +999,7 @@ const ANIMS = ['pop', 'vlieg', 'landing', 'draai', 'moonwalk'];
 const BURSTS = ['Bam!', 'Sláinte!', 'Pow!', 'Craic!', 'Kaboem!', 'Jawel!', 'Boem!'];
 const FLAVORS = ['viert het met jullie.', 'keurt het goed.', 'doet de zeven-zes.', 'is trots op jullie.', 'komt even langs.'];
 const partyQueue = [];
-let partyTimer = 0, partyOpen = false, lastHero = -1, lastAnim = -1;
+let partyOpen = false, lastHero = -1, lastAnim = -1;
 const pickOther = (n, last) => { let i = Math.floor(Math.random() * n); if (n > 1 && i === last) i = (i + 1) % n; return i; };
 let heroesWarm = false;
 function warmHeroes() { if (heroesWarm) return; heroesWarm = true; HEROES.forEach(h => { const i = new Image(); i.src = `helden/${h.id}.webp`; }); }
@@ -1012,7 +1012,6 @@ function celebrate(nr, pts, demo) {
 function nextParty() {
   const el = $('party');
   const item = partyQueue.shift();
-  clearTimeout(partyTimer);
   if (!item) {
     partyOpen = false;
     el.classList.add('out');
@@ -1053,7 +1052,7 @@ function nextParty() {
   el.classList.remove('out');
   el.hidden = false;
   buzz([30, 60, 30, 60, 60]);
-  partyTimer = setTimeout(nextParty, 5600);
+  // Het feest sluit niet vanzelf: de held blijft het gebaar doen tot iemand tikt.
 }
 $('party').addEventListener('click', nextParty);
 document.addEventListener('keydown', e => { if (partyOpen && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) nextParty(); });
