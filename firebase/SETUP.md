@@ -14,6 +14,10 @@ Storage voor de foto's en video's.
 6. **Firestore Database › Regels**: plak de inhoud van `firestore.rules` en publiceer.
 7. **Storage › Regels**: plak de inhoud van `storage.rules` en publiceer.
 
+8. Alleen nodig voor de knop **Download alles** in het dashboard: sta toe dat de browser bestanden ophaalt.
+   `gcloud storage buckets update gs://grazy-76.firebasestorage.app --cors-file=firebase/cors.json`
+   (alleen lezen, alleen vanaf de GitHub-site en de lokale testserver; terugdraaien met `--clear-cors`).
+
 Daarna: commit, push, en de apps op https://kayalbers02.github.io/crazy-76/ werken voor iedereen.
 
 ## Tijdens het spel

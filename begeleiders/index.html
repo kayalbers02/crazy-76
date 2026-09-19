@@ -71,6 +71,16 @@
   .card .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
   .empty { padding: 40px 12px; text-align: center; color: var(--on-pub-muted); text-wrap: balance; }
 
+  /* ---------- Galerij: alles wat is ingeleverd, per team ---------- */
+  .mode { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 10px; background: rgba(0, 0, 0, 0.25); }
+  .mode button { min-height: 40px; border: 0; border-radius: 7px; background: transparent; color: var(--on-pub-muted); font: 700 11px/1 var(--f-display); letter-spacing: 0.12em; text-transform: uppercase; }
+  .mode button[aria-pressed="true"] { background: var(--foam); color: var(--ink); }
+  .gal-tools { display: grid; gap: 10px; }
+  .gal-dl { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .gal-dl .sml { font-size: 13px; color: var(--on-pub-muted); }
+  .gal-card .gal-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+
   /* ---------- Team ---------- */
   .team-head { display: grid; gap: 12px; padding: 0 14px 14px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
   .team-head::before { content: ""; height: 18px; margin-inline: -14px; border-bottom: 2px solid var(--ink); }
@@ -193,7 +203,20 @@
     <main>
       <section class="view" id="viewInbox">
         <div class="view-head"><h2>Inbox</h2><span class="sml" id="inboxSub"></span></div>
+        <div class="mode" role="group" aria-label="Weergave van de inbox">
+          <button type="button" data-inbox-mode="queue" aria-pressed="true">Wachtrij</button>
+          <button type="button" data-inbox-mode="gallery" aria-pressed="false">Galerij</button>
+        </div>
+        <div class="gal-tools" id="galTools" hidden>
+          <div class="chips" id="galTeams"></div>
+          <div class="chips" id="galStatus"></div>
+          <div class="gal-dl">
+            <button type="button" class="btn gold small" id="galDownload">Download alles (zip)</button>
+            <span class="sml" id="galInfo"></span>
+          </div>
+        </div>
         <div class="cards" id="inbox"></div>
+        <div class="cards" id="gallery" hidden></div>
         <p class="empty" id="inboxEmpty" hidden></p>
       </section>
 
@@ -306,7 +329,7 @@ const ICON = {
 const STATUS = { open: 'Open', pending: 'Wacht', approved: 'Goed', rejected: 'Afgekeurd' };
 
 const LS = 'c76-super';
-function load() { try { return Object.assign({ pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' } }, JSON.parse(localStorage.getItem(LS)) || {}); } catch (e) { return { pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' } }; } }
+function load() { try { return Object.assign({ pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' }, inboxMode: 'queue', gTeam: 'all', gStatus: 'all' }, JSON.parse(localStorage.getItem(LS)) || {}); } catch (e) { return { pin: '', tab: 'inbox', tf: { A: 'all', B: 'all' }, inboxMode: 'queue', gTeam: 'all', gStatus: 'all' }; } }
 function save() { try { localStorage.setItem(LS, JSON.stringify(P)); } catch (e) {} }
 let P = load();
 let backend = null, state = null, teams = null, subs = [], logs = [], inMain = false;
@@ -435,12 +458,121 @@ function subCard(s, now) {
     </article>`;
 }
 function paintInbox() {
+  const gal = P.inboxMode === 'gallery';
+  document.querySelectorAll('[data-inbox-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.inboxMode === P.inboxMode)));
+  $('galTools').hidden = !gal; $('gallery').hidden = !gal; $('inbox').hidden = gal;
+  if (gal) { paintGallery(); return; }
   const now = Date.now();
   const pending = subs.filter(s => s.status === 'pending').sort((a, b) => a.createdAt - b.createdAt);
   $('inboxSub').textContent = pending.length ? `${pending.length} wacht${pending.length === 1 ? '' : 'en'} op beoordeling · oudste eerst` : '';
   $('inbox').innerHTML = pending.map(s => subCard(s, now)).join('');
   const empty = $('inboxEmpty'); empty.hidden = pending.length > 0;
   empty.textContent = state.startAt ? 'De inbox is leeg. Zodra een team bewijs instuurt, verschijnt het hier vanzelf.' : 'De klok is nog niet gestart. Zet eerst de teamcodes en namen goed bij Meer, en start dan de klok bovenin.';
+}
+
+// ---------- Galerij ----------
+const galSubs = () => subs
+  .filter(s => (s.media || []).length && (P.gTeam === 'all' || s.team === P.gTeam) && (P.gStatus === 'all' || s.status === P.gStatus))
+  .sort((a, b) => a.nr - b.nr || a.team.localeCompare(b.team));
+function paintGallery() {
+  const chip = (attr, val, label, on, n) => `<button type="button" ${attr}="${val}" aria-pressed="${on}">${C.esc(label)}${n == null ? '' : ` <span>${n}</span>`}</button>`;
+  const withMedia = subs.filter(s => (s.media || []).length);
+  $('galTeams').innerHTML = [['all', 'Alle teams'], ['A', teamName('A')], ['B', teamName('B')]]
+    .map(([v, l]) => chip('data-gteam', v, l, P.gTeam === v, withMedia.filter(s => v === 'all' || s.team === v).length)).join('');
+  $('galStatus').innerHTML = [['all', 'Alles'], ['pending', 'Wacht'], ['approved', 'Goed'], ['rejected', 'Afgekeurd']]
+    .map(([v, l]) => chip('data-gstatus', v, l, P.gStatus === v)).join('');
+  const list = galSubs();
+  const files = list.reduce((a, s) => a + s.media.length, 0);
+  const bytes = list.reduce((a, s) => a + s.media.reduce((x, m) => x + (m.size || 0), 0), 0);
+  $('inboxSub').textContent = `${list.length} inzending${list.length === 1 ? '' : 'en'} · ${files} bestand${files === 1 ? '' : 'en'}`;
+  if (!zipBusy) { $('galInfo').textContent = files ? `${files} bestand${files === 1 ? '' : 'en'}, ongeveer ${F.mb(bytes)}. Doe dit op een laptop met wifi.` : ''; $('galDownload').disabled = !files; }
+  $('gallery').innerHTML = list.map(s => {
+    const t = C.BY_NR.get(s.nr);
+    return `
+    <article class="card gal-card ${s.team} g${t.cat}" data-sub="${s.id}">
+      <div class="card-head"><span class="chip team-${s.team}">${C.esc(teamName(s.team))}</span><span class="nr">${s.nr}</span><span class="chip st-${s.status}">${STATUS[s.status]}</span><span class="since">${F.hhmm(s.createdAt)}</span></div>
+      <p class="text">${C.rich(t.text)}</p>
+      <div class="media-grid">${s.media.map(mediaThumb).join('')}</div>
+      ${s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
+      <div class="gal-foot"><span class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span>${t.pts} pt</span></span><button type="button" class="btn ghost small" data-open="${s.team}:${s.nr}">Bekijk of beoordeel</button></div>
+    </article>`; }).join('');
+  const empty = $('inboxEmpty'); empty.hidden = list.length > 0;
+  empty.textContent = 'Nog niets ingeleverd in deze selectie.';
+}
+
+// ---------- Alles downloaden als zip (zonder compressie; foto's en video's zijn al klein) ----------
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+async function crcOf(blob) {
+  let c = 0xFFFFFFFF;
+  const reader = blob.stream().getReader();
+  for (;;) { const { done, value } = await reader.read(); if (done) break; for (let i = 0; i < value.length; i++) c = CRC_T[(c ^ value[i]) & 0xFF] ^ (c >>> 8); }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function zipWriter() {
+  const parts = [], central = []; let offset = 0, count = 0;
+  const enc = new TextEncoder();
+  const d = new Date(), dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  return {
+    get size() { return offset; }, get count() { return count; },
+    async add(name, blob) {
+      const nm = enc.encode(name), crc = await crcOf(blob);
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
+      h.setUint16(10, dosTime, true); h.setUint16(12, dosDate, true); h.setUint32(14, crc, true); h.setUint32(18, blob.size, true); h.setUint32(22, blob.size, true); h.setUint16(26, nm.length, true);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(12, dosTime, true); c.setUint16(14, dosDate, true);
+      c.setUint32(16, crc, true); c.setUint32(20, blob.size, true); c.setUint32(24, blob.size, true); c.setUint16(28, nm.length, true); c.setUint32(42, offset, true);
+      parts.push(h.buffer, nm, blob); central.push(c.buffer, nm);
+      offset += 30 + nm.length + blob.size; count++;
+    },
+    finish() {
+      const cdSize = central.reduce((a, p) => a + p.byteLength, 0);
+      const e = new DataView(new ArrayBuffer(22));
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, count, true); e.setUint16(10, count, true); e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+      return new Blob([...parts, ...central, e.buffer], { type: 'application/zip' });
+    },
+  };
+}
+const safeName = x => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '-') || 'team';
+const csvCell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+let zipBusy = false;
+async function downloadAll() {
+  if (zipBusy) return;
+  const list = galSubs();
+  if (!list.length) return;
+  const LIMIT = 1.8 * 1024 * 1024 * 1024;     // per deel, zodat een gewone zip volstaat
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+  const scope = P.gTeam === 'all' ? 'alle-teams' : safeName(teamName(P.gTeam));
+  const total = list.reduce((a, s) => a + s.media.length, 0);
+  const info = $('galInfo'), btn = $('galDownload');
+  zipBusy = true; btn.disabled = true;
+  const saveZip = (zip, part, more) => { const a = document.createElement('a'); a.href = URL.createObjectURL(zip.finish()); a.download = `crazy76-${scope}-${stamp}${more || part > 1 ? `-deel${part}` : ''}.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); };
+  try {
+    const rows = [['team', 'opdracht', 'tekst', 'status', 'punten', 'ingestuurd', 'opmerking team', 'reden begeleiders', 'bestanden'].map(csvCell).join(';')];
+    let zip = zipWriter(), part = 1, done = 0, failed = 0;
+    for (const s of list) {
+      const t = C.BY_NR.get(s.nr), names = [];
+      for (let i = 0; i < s.media.length; i++) {
+        const m = s.media[i];
+        info.textContent = `Bezig: ${done + 1} van ${total} bestanden…`;
+        let blob;
+        try { const r = await fetch(m.url); if (!r.ok) throw new Error(String(r.status)); blob = await r.blob(); }
+        catch (e) { if (!done && !failed && e instanceof TypeError) throw { cors: true }; failed++; done++; continue; }
+        const ext = (/\.([a-z0-9]{2,5})(?:\?|$)/i.exec(m.path || m.name || '') || [])[1] || (m.type === 'image' ? 'jpg' : m.type === 'video' ? 'mp4' : 'm4a');
+        const name = `${safeName(teamName(s.team))}/opdracht-${String(s.nr).padStart(3, '0')}_${STATUS[s.status].toLowerCase()}_${i + 1}.${ext.toLowerCase()}`;
+        if (zip.count && zip.size + blob.size > LIMIT) { saveZip(zip, part, true); zip = zipWriter(); part++; }
+        await zip.add(name, blob); names.push(name); done++;
+      }
+      rows.push([teamName(s.team), s.nr, t.plain, STATUS[s.status], s.points == null ? '' : s.points, new Date(s.createdAt).toLocaleString('nl-NL'), s.note, s.reviewNote, names.join(' | ')].map(csvCell).join(';'));
+    }
+    await zip.add('overzicht.csv', new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv' }));
+    saveZip(zip, part, false);
+    info.textContent = `Klaar: ${done - failed} bestanden in ${part} zip${part === 1 ? '' : '-delen'}${failed ? `, ${failed} niet gelukt` : ''}.`;
+    backend.log({ type: 'export', text: `Media gedownload (${scope}, ${done - failed} bestanden)` });
+  } catch (e) {
+    console.error(e);
+    info.textContent = e && e.cors ? 'De opslag weigert het ophalen vanaf dit adres. Open het dashboard via kayalbers02.github.io.' : 'Downloaden mislukt. Controleer je internet en probeer opnieuw.';
+  } finally { zipBusy = false; btn.disabled = false; }
 }
 
 function paintTeam(id) {
@@ -674,6 +806,12 @@ document.addEventListener('click', async e => {
   if (d.tf) { P.tf[d.tf] = d.f; save(); paintTeam(d.tf); return; }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('[data-open]')) e.target.click(); });
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-inbox-mode]'); if (m) { P.inboxMode = m.dataset.inboxMode; save(); paintInbox(); return; }
+  const gt = e.target.closest('[data-gteam]'); if (gt) { P.gTeam = gt.dataset.gteam; save(); paintInbox(); return; }
+  const gs = e.target.closest('[data-gstatus]'); if (gs) { P.gStatus = gs.dataset.gstatus; save(); paintInbox(); }
+});
+$('galDownload').addEventListener('click', downloadAll);
 document.addEventListener('change', async e => {
   const el = e.target;
   if (el.matches('[data-dub-set]')) {
@@ -772,7 +910,7 @@ $('exportBtn').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 
-setInterval(() => { if (inMain && state) { paintClock(); if (P.tab === 'inbox') paintInbox(); } }, 15000);
+setInterval(() => { if (inMain && state) { paintClock(); if (P.tab === 'inbox' && P.inboxMode !== 'gallery') paintInbox(); } }, 15000);
 setInterval(() => { if (inMain && state) paintClock(); }, 1000);
 addEventListener('offline', () => { $('live').innerHTML = '<span class="conn">geen verbinding</span>'; });
 addEventListener('online', () => { $('live').innerHTML = '<i></i>live'; });

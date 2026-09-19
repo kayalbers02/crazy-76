@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://kayalbers02.github.io", "http://localhost:8076"],
+    "method": ["GET", "HEAD"],
+    "responseHeader": ["Content-Type", "Content-Length"],
+    "maxAgeSeconds": 3600
+  }
+]
