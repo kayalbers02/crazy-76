@@ -8,9 +8,9 @@
     latePer5: 3,           // strafpunten per begonnen 5 minuten te laat
     halveAfterMin: 30,     // meer dan 30 minuten te laat: helft van de punten
     juryMax: 5,            // jurybonus voor legendarische uitvoeringen
-    dartsNr: 58,           // opdracht met een bonus bij winst
+    dartsNr: 58,           // bullen: bonus bij winst
     dartsBonus: 2,
-    maxMedia: 6,           // bestanden per inzending
+    maxMedia: 6,           // bestanden per inzending (opdrachten met een minimum mogen er één meer)
     maxVideoMB: 150,
     maxImageMB: 30,
     teams: ['A', 'B'],
@@ -50,6 +50,11 @@
     dur: sec => sec ? `${Math.floor(sec / 60)}:${pad(Math.round(sec % 60))}` : '',
   };
 
+  // Punten van een goedgekeurde opdracht, zonder dubbel: de keuze van de jury, anders het vaste aantal.
+  C76.award = (s, t) => (s && s.award != null ? s.award : (t || C76.BY_NR.get(s.nr)).pts);
+  // Hoeveel bestanden er bij een opdracht mogen.
+  C76.maxFiles = t => t.max || Math.max(C76.RULES.maxMedia, t.min + 1);
+
   C76.endAt = state => state && state.startAt ? state.startAt + (state.durationMin || C76.RULES.durationMin) * 60000 : null;
 
   // Klok voor het hele spel (beide teams).
@@ -75,10 +80,9 @@
     const approved = mine.filter(s => s.status === 'approved');
     const pending = mine.filter(s => s.status === 'pending');
     const rejected = mine.filter(s => s.status === 'rejected');
-    const ptsOf = list => list.reduce((a, s) => a + ((C76.BY_NR.get(s.nr) || {}).pts || 0), 0);
-    const base = ptsOf(approved);
-    const pendingPts = ptsOf(pending);
-    const openPts = C76.TASKS.filter(t => !byNr.has(t.nr)).reduce((a, t) => a + t.pts, 0);
+    const base = approved.reduce((a, s) => a + (C76.BY_NR.has(s.nr) ? C76.award(s) : 0), 0);
+    const pendingPts = pending.reduce((a, s) => a + ((C76.BY_NR.get(s.nr) || {}).top || 0), 0);
+    const openPts = C76.TASKS.filter(t => !byNr.has(t.nr)).reduce((a, t) => a + t.top, 0);
     const endAt = C76.endAt(state);
     const closed = !!(team.finishAt || state.finishedAt);
 
@@ -90,7 +94,8 @@
         : s.status === 'approved' ? 'hit'
         : s.status === 'rejected' ? 'miss'
         : 'pending';
-      dubbel = { nr: team.dubbel, pts: t.pts, state: st, value: st === 'hit' ? t.pts : st === 'miss' ? -t.pts : 0 };
+      // Gelukt: de punten nog een keer erbij. Mislukt: het vaste aantal eraf.
+      dubbel = { nr: team.dubbel, pts: t.pts, top: t.top, state: st, value: st === 'hit' ? C76.award(s, t) : st === 'miss' ? -t.pts : 0 };
     }
 
     const dartsSub = byNr.get(R.dartsNr);
@@ -108,7 +113,7 @@
     const halved = lateMin > R.halveAfterMin;
     const sub = base + (dubbel ? dubbel.value : 0) + jury + darts - latePen - penaltyPts;
     const total = halved ? Math.round(sub / 2) : sub;
-    const dubbelOpen = dubbel && (dubbel.state === 'open' || dubbel.state === 'pending') ? dubbel.pts : 0;
+    const dubbelOpen = dubbel && (dubbel.state === 'open' || dubbel.state === 'pending') ? dubbel.top : 0;
     const maxReachable = total + openPts + pendingPts + dubbelOpen;
 
     return { teamId, base, approved, pending, rejected, openPts, pendingPts, dubbel, darts, jury, penalties, penaltyPts,
@@ -117,10 +122,10 @@
 
   // Per categorie: gedaan en punten.
   C76.catScore = (teamId, subs) => {
-    const ok = new Set((subs || []).filter(s => s.team === teamId && s.status === 'approved').map(s => s.nr));
+    const ok = new Map((subs || []).filter(s => s.team === teamId && s.status === 'approved').map(s => [s.nr, s]));
     return C76.SECTIONS.map(s => {
       const done = s.items.filter(t => ok.has(t.nr));
-      return { title: s.title, n: s.items.length, done: done.length, pts: done.reduce((a, t) => a + t.pts, 0), max: s.max };
+      return { title: s.title, n: s.items.length, done: done.length, pts: done.reduce((a, t) => a + C76.award(ok.get(t.nr), t), 0), max: s.max };
     });
   };
 

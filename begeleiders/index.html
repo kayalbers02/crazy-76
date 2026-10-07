@@ -69,6 +69,10 @@
   .note { padding: 8px 10px; border: 2px dashed var(--g-lblue); border-radius: 6px; background: var(--board-hi); font: italic 400 15px/1.35 var(--f-flavor); }
   .proofline { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 700 14px/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-board-muted); }
   .card .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+  .card .actions.choice, .lb-actions.choice, .grid2.choice { grid-template-columns: 1fr 1fr; }
+  .choice > .wide { grid-column: 1 / -1; }
+  .jury-line { margin: 0; font-size: 14px; color: var(--on-board-muted); }
+  .jury-line b { color: #a34a00; font-weight: 600; }
   .empty { padding: 40px 12px; text-align: center; color: var(--on-pub-muted); text-wrap: balance; }
 
   /* ---------- Galerij: alles wat is ingeleverd, per team ---------- */
@@ -354,7 +358,21 @@ function armed(btn, confirmText, fn) {
 function show(which) { $('viewWait').hidden = which !== 'wait'; $('viewSetup').hidden = which !== 'setup'; $('viewLogin').hidden = which !== 'login'; $('main').hidden = which !== 'main'; inMain = which === 'main'; }
 const teamName = id => (teams && teams[id] && teams[id].name) || (id === 'A' ? 'Team 1' : 'Team 2');
 const subOf = (team, nr) => subs.find(s => s.team === team && s.nr === nr);
-const ptsFor = (team, nr) => C.BY_NR.get(nr).pts * (teams[team].dubbel === nr ? 2 : 1);
+// Punten voor een goedkeuring, inclusief dubbel. award = keuze van de jury (alleen bij opdrachten met een keuze).
+const ptsFor = (team, nr, award) => (award == null ? C.BY_NR.get(nr).pts : award) * (teams[team].dubbel === nr ? 2 : 1);
+// Goedkeurknoppen: bij een jurykeuze één knop per keuze.
+function approveBtns(team, nr, id, verb = 'Goedkeuren') {
+  const t = C.BY_NR.get(nr);
+  if (!t.choices) return `<button type="button" class="btn ok" data-approve="${id}">${ICON.check} ${verb} +${ptsFor(team, nr)}</button>`;
+  return t.choices.map(c => `<button type="button" class="btn ok" data-approve="${id}" data-award="${c.pts}">${ICON.check} ${C.esc(c.label)} +${ptsFor(team, nr, c.pts)}</button>`).join('');
+}
+// Wat er gevraagd is, en of het aantal bestanden klopt.
+function proofLine(t, s, dub) {
+  const n = s ? (s.media || []).length : null;
+  const short = s && t.min > 1 && n < t.min;
+  return `<div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${C.needLabel(t)}</span>${n == null ? '' : `<span${short ? ' class="short"' : ''}>${n} bestand${n === 1 ? '' : 'en'}${short ? `, ${t.min - n} te weinig` : ''}</span>`}<span>${s && s.status === 'approved' ? '+' + ptsFor(s.team, s.nr, s.award) : C.ptsShort(t) + ' pt' + (dub ? ' × 2' : '')}</span></div>
+    ${t.choices ? `<p class="jury-line"><b>Jury kiest:</b> ${C.esc(C.choiceLabel(t))} punten</p>` : ''}`;
+}
 
 // ---------- Start ----------
 async function boot() {
@@ -450,11 +468,10 @@ function subCard(s, now) {
       <p class="text">${C.rich(t.text)}</p>
       <div class="media-grid">${(s.media || []).map(mediaThumb).join('')}</div>
       ${s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
-      <div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span>${(s.media || []).length} bestand${(s.media || []).length === 1 ? '' : 'en'}</span><span>${t.pts} pt${dub ? ' × 2' : ''}</span></div>
-      <div class="actions">
-        <button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>
-        <button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>
-      </div>
+      ${proofLine(t, s, dub)}
+      ${t.choices
+        ? `<div class="actions choice">${approveBtns(s.team, s.nr, s.id)}<button type="button" class="btn danger wide" data-reject="${s.id}">${ICON.x} Afkeuren</button></div>`
+        : `<div class="actions"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>${approveBtns(s.team, s.nr, s.id)}</div>`}
     </article>`;
 }
 function paintInbox() {
@@ -494,7 +511,7 @@ function paintGallery() {
       <p class="text">${C.rich(t.text)}</p>
       <div class="media-grid">${s.media.map(mediaThumb).join('')}</div>
       ${s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
-      <div class="gal-foot"><span class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span>${t.pts} pt</span></span><button type="button" class="btn ghost small" data-open="${s.team}:${s.nr}">Bekijk of beoordeel</button></div>
+      <div class="gal-foot"><span class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${C.needLabel(t)}</span><span>${s.status === 'approved' ? '+' + ptsFor(s.team, s.nr, s.award) : C.ptsShort(t) + ' pt'}</span></span><button type="button" class="btn ghost small" data-open="${s.team}:${s.nr}">Bekijk of beoordeel</button></div>
     </article>`; }).join('');
   const empty = $('inboxEmpty'); empty.hidden = list.length > 0;
   empty.textContent = 'Nog niets ingeleverd in deze selectie.';
@@ -592,17 +609,17 @@ function paintTeam(id) {
       </div>
       <div class="ctl">
         <div class="ctl-row">
-          <div class="lab"><b>Dubbel of niks</b><span>${dubT ? `Nr. ${dubT.nr} (${dubT.pts} pt) · ${sc.dubbel.state === 'hit' ? 'gelukt, +' + dubT.pts + ' extra' : sc.dubbel.state === 'miss' ? 'mislukt, −' + dubT.pts : sc.dubbel.state === 'pending' ? 'wacht op beoordeling' : 'nog open'}` : 'Nog niet gekozen'}</span></div>
+          <div class="lab"><b>Dubbel of niks</b><span>${dubT ? `Nr. ${dubT.nr} (${C.ptsShort(dubT)} pt) · ${sc.dubbel.state === 'hit' ? 'gelukt, +' + sc.dubbel.value + ' extra' : sc.dubbel.state === 'miss' ? 'mislukt, −' + dubT.pts : sc.dubbel.state === 'pending' ? 'wacht op beoordeling' : 'nog open'}` : 'Nog niet gekozen'}</span></div>
           ${dubT ? `<button type="button" class="btn ghost small" data-dub-clear="${id}">Loskoppelen</button>`
-            : `<select data-dub-set="${id}" aria-label="Dubbel-opdracht kiezen"><option value="">Kies nr.</option>${openTasks.map(x => `<option value="${x.nr}">${x.nr} · ${x.pts} pt</option>`).join('')}</select>`}
+            : `<select data-dub-set="${id}" aria-label="Dubbel-opdracht kiezen"><option value="">Kies nr.</option>${openTasks.map(x => `<option value="${x.nr}">${x.nr} · ${C.ptsShort(x)} pt</option>`).join('')}</select>`}
         </div>
         <div class="ctl-row">
           <div class="lab"><b>Jurybonus</b><span>Legendarische uitvoering, max. ${R.juryMax}</span></div>
           <div class="stepper"><button type="button" data-jury="${id}" data-d="-1" aria-label="Jurybonus min 1">−</button><output>${sc.jury}</output><button type="button" data-jury="${id}" data-d="1" aria-label="Jurybonus plus 1">+</button></div>
         </div>
         <div class="ctl-row">
-          <div class="lab"><b>Darts of pool gewonnen</b><span>+${R.dartsBonus}, telt als opdracht ${R.dartsNr} is goedgekeurd</span></div>
-          <input type="checkbox" class="switch" data-darts="${id}" ${t.darts ? 'checked' : ''} aria-label="Darts of pool gewonnen">
+          <div class="lab"><b>Bullen gewonnen</b><span>+${R.dartsBonus}, telt als opdracht ${R.dartsNr} is goedgekeurd</span></div>
+          <input type="checkbox" class="switch" data-darts="${id}" ${t.darts ? 'checked' : ''} aria-label="Bullen gewonnen">
         </div>
         <div class="ctl-row">
           <div class="lab"><b>${t.finishAt ? 'Binnen' : 'Team is binnen'}</b><span>${fin}</span></div>
@@ -619,8 +636,8 @@ function paintTeam(id) {
       ${rows.map(x => { const s = subOf(id, x.nr); const st = C.taskStatus(s); return `
         <div class="trow g${x.cat} ${st}" data-open="${id}:${x.nr}" role="button" tabindex="0">
           <span class="nr">${x.nr}</span>
-          <p class="tx">${C.rich(x.text)} <small>· ${x.pts} pt${t.dubbel === x.nr ? ' ×2' : ''}${s && s.status === 'rejected' && s.reviewNote ? ' · ' + C.esc(s.reviewNote) : ''}</small></p>
-          <span class="chip st-${st}">${st === 'approved' ? ICON.check + ' +' + ptsFor(id, x.nr) : st === 'rejected' ? ICON.x + ' 0' : st === 'pending' ? 'wacht' : 'open'}</span>
+          <p class="tx">${C.rich(x.text)} <small>· ${C.ptsShort(x)} pt${t.dubbel === x.nr ? ' ×2' : ''}${s && s.status === 'rejected' && s.reviewNote ? ' · ' + C.esc(s.reviewNote) : ''}</small></p>
+          <span class="chip st-${st}">${st === 'approved' ? ICON.check + ' +' + ptsFor(id, x.nr, s.award) : st === 'rejected' ? ICON.x + ' 0' : st === 'pending' ? 'wacht' : 'open'}</span>
         </div>`; }).join('')}
       ${rows.length ? '' : '<p class="empty">Niets in dit filter.</p>'}
     </div>`;
@@ -631,9 +648,9 @@ function ledgerHTML(id, sc) {
   const d = sc.dubbel;
   return `<ul class="ledger">
     ${li('Goedgekeurd', `${sc.approved.length} opdrachten`, sc.base, String(sc.base))}
-    ${li('Dubbel of niks', d ? `Nr. ${d.nr} · ${d.state === 'hit' ? 'gelukt' : d.state === 'miss' ? 'mislukt' : 'nog open'}` : 'Niet gekozen', d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.pts}?` : null)}
+    ${li('Dubbel of niks', d ? `Nr. ${d.nr} · ${d.state === 'hit' ? 'gelukt' : d.state === 'miss' ? 'mislukt' : 'nog open'}` : 'Niet gekozen', d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.top}?` : null)}
     ${li('Jurybonus', '', sc.jury)}
-    ${li('Darts of pool', 'Opdracht 58', sc.darts)}
+    ${li('Bullen gewonnen', 'Opdracht 58', sc.darts)}
     ${li('Te laat', sc.lateMin > 0 ? `${Math.ceil(sc.lateMin)} min` : '', -sc.latePen)}
     ${sc.penalties.map(p => li('Straf', C.esc(p.reason || ''), -(p.amount || 0))).join('')}
     <li class="sum"><div class="lab-wrap"><span class="lab">Totaal</span><span class="sub">${sc.halved ? `Meer dan 30 min te laat: helft van ${sc.sub}` : ''}</span></div><span class="val">${sc.total}</span></li>
@@ -665,12 +682,16 @@ function paintSettings() {
 }
 
 // ---------- Beoordelen ----------
-async function approve(id) {
+const prevOf = s => ({ status: s.status, reviewedAt: s.reviewedAt || null, reviewedBy: s.reviewedBy || null, reviewNote: s.reviewNote || '', points: s.points == null ? null : s.points, award: s.award == null ? null : s.award });
+async function approve(id, award) {
   const s = subs.find(x => x.id === id); if (!s) return;
-  const pts = ptsFor(s.team, s.nr);
-  const prev = { status: s.status, reviewedAt: s.reviewedAt || null, reviewedBy: s.reviewedBy || null, reviewNote: s.reviewNote || '', points: s.points == null ? null : s.points };
+  const t = C.BY_NR.get(s.nr);
+  const aw = t.choices ? award : null;
+  if (t.choices && aw == null) { openSubDlg(s.team, s.nr); return; }
+  const pts = ptsFor(s.team, s.nr, aw);
+  const prev = prevOf(s);
   try {
-    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: '', points: pts });
+    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: '', points: pts, award: aw });
     backend.log({ type: 'approve', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} goedgekeurd (+${pts})` });
     toast(`${teamName(s.team)}: opdracht ${s.nr} goedgekeurd, +${pts}`, 'Ongedaan maken', () => backend.review(id, prev));
   } catch (e) { toast('Opslaan mislukt: ' + (e.message || e)); }
@@ -701,9 +722,9 @@ $('rejOk').addEventListener('click', async e => {
   const preset = $('rejReasons').querySelector('[aria-pressed="true"]');
   const note = [preset && preset.dataset.reason, $('rejNote').value.trim()].filter(Boolean).join(' · ') || 'Afgekeurd door de begeleiders';
   const dub = teams[s.team].dubbel === s.nr;
-  const prev = { status: s.status, reviewedAt: s.reviewedAt || null, reviewedBy: s.reviewedBy || null, reviewNote: s.reviewNote || '', points: s.points == null ? null : s.points };
+  const prev = prevOf(s);
   try {
-    await backend.review(id, { status: 'rejected', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: note, points: dub ? -C.BY_NR.get(s.nr).pts : 0 });
+    await backend.review(id, { status: 'rejected', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: note, points: dub ? -C.BY_NR.get(s.nr).pts : 0, award: null });
     backend.log({ type: 'reject', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} afgekeurd: ${note}` });
     toast(`${teamName(s.team)}: opdracht ${s.nr} afgekeurd`, 'Ongedaan maken', () => backend.review(id, prev));
     if ($('lightbox').open) $('lightbox').close();
@@ -712,7 +733,7 @@ $('rejOk').addEventListener('click', async e => {
 });
 async function backToPending(id) {
   const s = subs.find(x => x.id === id); if (!s) return;
-  await backend.review(id, { status: 'pending', reviewedAt: null, reviewedBy: null, reviewNote: '', points: null });
+  await backend.review(id, { status: 'pending', reviewedAt: null, reviewedBy: null, reviewNote: '', points: null, award: null });
   backend.log({ type: 'pending', team: s.team, nr: s.nr, text: `Opdracht ${s.nr} terug in de wachtrij` });
   toast(`Opdracht ${s.nr} staat weer in de inbox`);
 }
@@ -723,11 +744,12 @@ async function reopen(id) {
   toast(`Opdracht ${s.nr} is weer open voor ${teamName(s.team)}`);
   $('subDlg').close();
 }
-async function manualApprove(team, nr) {
+async function manualApprove(team, nr, award) {
+  const aw = C.BY_NR.get(nr).choices ? award : null;
   try {
     const id = await backend.createSubmission({ team, nr, note: 'Handmatig goedgekeurd door de begeleiders', media: [], by: 'begeleiders' });
-    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: 'Handmatig goedgekeurd', points: ptsFor(team, nr) });
-    backend.log({ type: 'approve', team, nr, text: `Opdracht ${nr} handmatig goedgekeurd (+${ptsFor(team, nr)})` });
+    await backend.review(id, { status: 'approved', reviewedAt: Date.now(), reviewedBy: 'begeleiders', reviewNote: 'Handmatig goedgekeurd', points: ptsFor(team, nr, aw), award: aw });
+    backend.log({ type: 'approve', team, nr, text: `Opdracht ${nr} handmatig goedgekeurd (+${ptsFor(team, nr, aw)})` });
     toast(`${teamName(team)}: opdracht ${nr} goedgekeurd zonder bewijs`);
     $('subDlg').close();
   } catch (e) { toast(e.code === 'exists' ? 'Dit team heeft deze opdracht al ingestuurd' : 'Opslaan mislukt'); }
@@ -743,14 +765,21 @@ function renderSub() {
   const st = C.taskStatus(s);
   const dub = teams[team].dubbel === nr;
   let actions = '';
-  if (st === 'open') actions = `<p class="notice grey">Nog niet ingestuurd door ${C.esc(teamName(team))}.</p><button type="button" class="btn ghost" data-manual="${team}:${nr}">Goedkeuren zonder bewijs (+${ptsFor(team, nr)})</button>`;
-  else if (st === 'pending') actions = `<div class="grid2"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(team, nr)}</button></div>`;
+  const manual = t.choices
+    ? `<div class="grid2">${t.choices.map(c => `<button type="button" class="btn ghost" data-manual="${team}:${nr}" data-award="${c.pts}">Zonder bewijs: ${C.esc(c.label.toLowerCase())} (+${ptsFor(team, nr, c.pts)})</button>`).join('')}</div>`
+    : `<button type="button" class="btn ghost" data-manual="${team}:${nr}">Goedkeuren zonder bewijs (+${ptsFor(team, nr)})</button>`;
+  if (st === 'open') actions = `<p class="notice grey">Nog niet ingestuurd door ${C.esc(teamName(team))}.</p>${manual}`;
+  else if (st === 'pending') actions = t.choices
+    ? `<div class="grid2 choice">${approveBtns(team, nr, s.id)}<button type="button" class="btn danger wide" data-reject="${s.id}">${ICON.x} Afkeuren</button></div>`
+    : `<div class="grid2"><button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>${approveBtns(team, nr, s.id)}</div>`;
   else if (st === 'approved') actions = `<div class="grid2"><button type="button" class="btn ghost" data-pending="${s.id}">Terug in de wachtrij</button><button type="button" class="btn danger" data-reject="${s.id}">Alsnog afkeuren</button></div>`;
-  else actions = `<div class="grid2"><button type="button" class="btn ghost" data-reopen="${s.id}">Heropenen</button><button type="button" class="btn ok" data-approve="${s.id}">Alsnog goedkeuren +${ptsFor(team, nr)}</button></div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`;
+  else actions = t.choices
+    ? `<div class="grid2 choice">${approveBtns(team, nr, s.id, 'Alsnog goedkeuren')}<button type="button" class="btn ghost wide" data-reopen="${s.id}">Heropenen</button></div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`
+    : `<div class="grid2"><button type="button" class="btn ghost" data-reopen="${s.id}">Heropenen</button>${approveBtns(team, nr, s.id, 'Alsnog goedkeuren')}</div><p class="fine">Heropenen verwijdert de inzending; het team mag dan opnieuw insturen.</p>`;
   $('subBody').innerHTML = `
     <div class="sheet-head"><div><h2 id="subTitle">Opdracht ${nr}</h2><span class="chip team-${team}">${C.esc(teamName(team))}</span> <span class="chip st-${st}">${STATUS[st]}</span>${dub ? ' <span class="chip st-pending">×2 dubbel</span>' : ''}</div><button type="button" class="icon-btn" data-close aria-label="Sluiten">×</button></div>
     <p class="text">${C.rich(t.text)}</p>
-    <div class="proofline"><span class="proof">${ICON[t.proof]}Gevraagd: ${t.proof}</span><span class="fine">${t.pts} pt${dub ? ' × 2' : ''}</span></div>
+    ${proofLine(t, s, dub)}
     ${s ? `<div class="media-grid">${(s.media || []).map(mediaThumb).join('')}</div>` : ''}
     ${s && s.note ? `<p class="note">“${C.esc(s.note)}”</p>` : ''}
     ${s ? `<p class="fine">Ingestuurd ${F.hhmm(s.createdAt)}${s.reviewedAt ? ` · beoordeeld ${F.hhmm(s.reviewedAt)}` : ''}${s.reviewNote ? ` · ${C.esc(s.reviewNote)}` : ''}</p>` : ''}
@@ -771,8 +800,12 @@ function openLightbox(s, start) {
       <p class="cap">${i + 1}/${media.length}${m.size ? ' · ' + F.mb(m.size) : ''}${m.duration ? ' · ' + F.dur(m.duration) : ''}</p>
     </div>`).join('');
   const act = $('lbActions');
+  const choice = !!C.BY_NR.get(s.nr).choices;
   act.hidden = s.status !== 'pending';
-  act.innerHTML = s.status === 'pending' ? `<button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button><button type="button" class="btn ok" data-approve="${s.id}">${ICON.check} Goedkeuren +${ptsFor(s.team, s.nr)}</button>` : '';
+  act.classList.toggle('choice', choice);
+  act.innerHTML = s.status !== 'pending' ? ''
+    : choice ? `${approveBtns(s.team, s.nr, s.id)}<button type="button" class="btn danger wide" data-reject="${s.id}">${ICON.x} Afkeuren</button>`
+    : `<button type="button" class="btn danger" data-reject="${s.id}">${ICON.x} Afkeuren</button>${approveBtns(s.team, s.nr, s.id)}`;
   $('lightbox').showModal();
   const el = $(`lb-${start}`); if (el && start) el.scrollIntoView();
 }
@@ -784,11 +817,11 @@ document.addEventListener('click', async e => {
   const el = e.target.closest('[data-approve],[data-reject],[data-pending],[data-reopen],[data-manual],[data-media],[data-open],[data-close],[data-dub-clear],[data-jury],[data-finish],[data-unfinish],[data-pen-add],[data-pen-rm],[data-tf]');
   if (!el) return;
   const d = el.dataset;
-  if (d.approve) { await approve(d.approve); if ($('lightbox').open) $('lightbox').close(); return; }
+  if (d.approve) { await approve(d.approve, d.award == null ? null : Number(d.award)); if ($('lightbox').open) $('lightbox').close(); return; }
   if (d.reject) { askReject(d.reject); return; }
   if (d.pending) { await backToPending(d.pending); $('subDlg').close(); return; }
   if (d.reopen) { await reopen(d.reopen); return; }
-  if (d.manual) { const [team, nr] = d.manual.split(':'); await manualApprove(team, Number(nr)); return; }
+  if (d.manual) { const [team, nr] = d.manual.split(':'); await manualApprove(team, Number(nr), d.award == null ? null : Number(d.award)); return; }
   if (d.close) { $('subDlg').close(); return; }
   if (d.media !== undefined) {
     const card = el.closest('[data-sub]');

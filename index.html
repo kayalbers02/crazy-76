@@ -579,14 +579,20 @@ $('loginBtn').addEventListener('click', async () => {
 $('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
 
 // ---------- Lijst ----------
+// Bolletjes voor de punten; bij een jurykeuze zijn de extra punten half gevuld.
+const pipsHTML = t => [1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : i <= t.top ? ' maybe' : ''}"></i>`).join('');
+// Wat dubbel-of-niks bij deze opdracht oplevert.
+const dubDeal = t => t.choices
+  ? `Gelukt: de punten tellen dubbel (<b>+${t.choices.map(c => c.pts * 2).join(' of +')}</b>). Mislukt of afgekeurd: <b>−${t.pts}</b>.`
+  : `Gelukt: <b>+${t.pts * 2}</b> in plaats van +${t.pts}. Mislukt of afgekeurd: <b>−${t.pts}</b>.`;
 const rowHTML = t => `
   <article class="task g${t.cat}" id="t${t.nr}" data-nr="${t.nr}">
-    <div class="band"><span class="nr" aria-hidden="true">${t.nr}</span><span class="price">${t.pts} ${t.pts === 1 ? 'punt' : 'punten'}</span></div>
+    <div class="band"><span class="nr" aria-hidden="true">${t.nr}</span><span class="price">${C.ptsLabel(t)}</span></div>
     <div class="body">
       <p class="text"><span class="visually-hidden">Opdracht ${t.nr}: </span>${C.rich(t.text)}</p>
       <div class="meta">
-        <span class="proof">${ICON[t.proof]}${t.proof}</span>
-        <span class="pips" aria-hidden="true">${[1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : ''}"></i>`).join('')}</span>
+        <span class="proof">${ICON[t.proof]}${C.needLabel(t)}</span>
+        <span class="pips" aria-hidden="true">${pipsHTML(t)}</span>
         <span class="dubslot"></span>
         <span class="st"><span class="ico"></span><span class="lbl"></span></span>
       </div>
@@ -623,7 +629,7 @@ function paintRow(nr) {
   const ico = row.querySelector('.ico'), lbl = row.querySelector('.lbl');
   const s = mySub(nr);
   const dub = team().dubbel === nr;
-  const pts = t.pts * (dub ? 2 : 1);
+  const pts = C.award(s, t) * (dub ? 2 : 1);
   if (st === 'open') { ico.innerHTML = ICON.send; lbl.textContent = 'Insturen'; }
   else if (st === 'pending') { ico.innerHTML = ICON.clock; lbl.textContent = 'Wacht'; }
   else if (st === 'approved') { ico.innerHTML = ICON.check; lbl.textContent = `Goed +${pts}`; }
@@ -660,7 +666,7 @@ function paintHeader() {
   $('nDone').textContent = n + me.rejected.length;
   C.SECTIONS.forEach((s, ci) => {
     const d = s.items.filter(t => statusOf(t.nr) === 'approved');
-    const pts = d.reduce((a, t) => a + t.pts, 0);
+    const pts = d.reduce((a, t) => a + C.award(mySub(t.nr), t), 0);
     $(`cat-count-${ci}`).textContent = `${d.length}/${s.items.length} · ${pts}/${s.max} pt`;
     $(`cat-bar-${ci}`).style.width = `${pts / s.max * 100}%`;
     $(`chip-${ci}`).textContent = `${d.length}/${s.items.length}`;
@@ -668,7 +674,7 @@ function paintHeader() {
   // Meldingen boven de lijst
   const dn = $('dubNotice'), wn = $('waitNotice');
   if (!team().dubbel && !state.startAt) { dn.hidden = false; dn.innerHTML = '<b>Kies vóór de start je dubbel-opdracht.</b> Tik op ×2 bij een opdracht: gelukt telt dubbel, mislukt kost je die punten. Dit kan maar één keer.'; }
-  else if (team().dubbel) { const t = C.BY_NR.get(team().dubbel); dn.hidden = false; dn.innerHTML = `<b>Dubbel-opdracht: nr. ${t.nr}</b> (${t.pts} pt). Gelukt: +${t.pts * 2}. Mislukt: −${t.pts}.`; }
+  else if (team().dubbel) { const t = C.BY_NR.get(team().dubbel); dn.hidden = false; dn.innerHTML = `<b>Dubbel-opdracht: nr. ${t.nr}</b> (${C.ptsShort(t)} pt). ${dubDeal(t)}`; }
   else { dn.hidden = false; dn.innerHTML = '<b>Geen dubbel-opdracht gekozen.</b> De begeleiders kunnen er nog een voor jullie vastzetten.'; }
   const block = submitBlock();
   wn.hidden = !block; wn.textContent = block || '';
@@ -748,7 +754,7 @@ $('list').addEventListener('click', e => {
   if (dub) {
     dubNr = Number(dub.dataset.dub);
     const t = C.BY_NR.get(dubNr);
-    $('dubText').innerHTML = `Opdracht <b>${t.nr}</b> (${t.pts} ${t.pts === 1 ? 'punt' : 'punten'}) wordt jullie dubbel-opdracht. Gelukt: <b>+${t.pts * 2}</b> in plaats van +${t.pts}. Mislukt of afgekeurd: <b>−${t.pts}</b>.`;
+    $('dubText').innerHTML = `Opdracht <b>${t.nr}</b> (${C.ptsLabel(t)}) wordt jullie dubbel-opdracht. ${dubDeal(t)}`;
     $('dubDlg').showModal();
     return;
   }
@@ -797,6 +803,13 @@ function openFromHash() {
   if (m && C.BY_NR.has(Number(m[1]))) openTask(Number(m[1]));
 }
 
+const cap = w => w.charAt(0).toUpperCase() + w.slice(1);
+// Teller bij opdrachten die meerdere losse bestanden vragen.
+function needLine(t) {
+  const n = picked.length, ok = n >= t.min;
+  return `<p class="need${ok ? ' ok' : ''}"><b>${n} van ${t.min}</b> ${C.unit(t, 2)} gekozen. ${ok ? 'Klaar om te versturen.' : `Nog ${t.min - n} nodig; pas dan kun je versturen.`}</p>`;
+}
+
 function openTask(nr) {
   openNr = nr; picked = [];
   renderTask();
@@ -819,19 +832,21 @@ function renderTask() {
     </div>
     <p class="text">${C.rich(t.text)}</p>
     <div class="metaline">
-      <span class="proof">${ICON[t.proof]}Bewijs: ${t.proof}</span>
-      <span class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="pip${i <= t.pts ? ' on' : ''}"></i>`).join('')}<b class="pts-b">${t.pts} pt${dub ? ' · ×2' : ''}</b></span>
+      <span class="proof">${ICON[t.proof]}Bewijs: ${C.needLabel(t)}</span>
+      <span class="pips">${pipsHTML(t)}<b class="pts-b">${C.ptsShort(t)} pt${dub ? ' · ×2' : ''}</b></span>
       ${dub ? '<span class="dub-on">dubbel-opdracht</span>' : ''}
-    </div>`;
+    </div>
+    ${t.choices ? `<p class="notice gold"><b>De jury kiest de punten</b> als jullie inzending binnen is: ${C.esc(C.choiceLabel(t))}.</p>` : ''}`;
   let body = '';
   if (st === 'open') {
     if (block) {
       body = `<p class="notice grey">${C.esc(block)}</p>${canPickDubbel() && !dub ? `<button type="button" class="btn ghost" data-dub-open="${nr}">Kies deze als dubbel-opdracht (×2)</button>` : ''}`;
     } else {
       body = `
+        ${t.min > 1 ? needLine(t) : ''}
         <div class="media-grid" id="pickGrid">${picked.map((p, i) => mediaThumb(p, i, true)).join('')}</div>
         <div class="pick-btns">
-          <button type="button" class="btn ghost" id="pickBtn">${ICON.Foto} ${picked.length ? 'Nog een foto of video' : 'Foto of video kiezen'}</button>
+          <button type="button" class="btn ghost" id="pickBtn">${ICON.Foto} ${picked.length ? 'Nog een foto of video' : t.min > 1 ? `${cap(C.unit(t, 2))} kiezen (meerdere tegelijk mag)` : 'Foto of video kiezen'}</button>
           ${t.proof === 'Audio' ? `<button type="button" class="btn ghost" id="pickAudio">${ICON.mic} Geluidsopname kiezen</button>` : ''}
         </div>
         <div class="field">
@@ -841,7 +856,7 @@ function renderTask() {
         <p class="fine">Minimaal drie van de vier teamleden in beeld, tenzij de opdracht iets anders zegt. Eén keer insturen: afgekeurd is afgekeurd.</p>
         <div class="progress" id="upProgress" hidden><span id="upFill"></span></div>
         <p class="error" id="upErr" hidden></p>
-        <button type="button" class="btn primary block" id="sendBtn" ${picked.length ? '' : 'disabled'}>${ICON.send} Versturen naar de begeleiders</button>`;
+        <button type="button" class="btn primary block" id="sendBtn" ${picked.length >= t.min ? '' : 'disabled'}>${ICON.send} Versturen naar de begeleiders</button>`;
     }
   } else if (st === 'pending') {
     body = `
@@ -850,13 +865,13 @@ function renderTask() {
       ${s.note ? `<p class="fine">Jullie opmerking: “${C.esc(s.note)}”</p>` : ''}
       ${block ? '' : `
         <div class="media-grid" id="pickGrid">${picked.map((p, i) => mediaThumb(p, i, true)).join('')}</div>
-        <div class="pick-btns"><button type="button" class="btn ghost" id="pickBtn">${ICON.plus} Nog een foto of video toevoegen</button></div>
+        ${(s.media || []).length < C.maxFiles(t) ? `<div class="pick-btns"><button type="button" class="btn ghost" id="pickBtn">${ICON.plus} Nog een foto of video toevoegen</button></div>` : ''}
         <div class="progress" id="upProgress" hidden><span id="upFill"></span></div>
         <p class="error" id="upErr" hidden></p>
         <button type="button" class="btn primary block" id="sendBtn" ${picked.length ? '' : 'hidden'}>${ICON.send} Toevoegen aan de inzending</button>`}`;
   } else if (st === 'approved') {
     body = `
-      <div class="status-head approved"><span class="big">+${t.pts * (dub ? 2 : 1)} punten</span><span>Goedgekeurd om ${F.hhmm(s.reviewedAt || s.createdAt)}</span>${s.reviewNote ? `<span class="why">“${C.esc(s.reviewNote)}”</span>` : ''}</div>
+      <div class="status-head approved"><span class="big">+${C.award(s, t) * (dub ? 2 : 1)} punten</span><span>Goedgekeurd om ${F.hhmm(s.reviewedAt || s.createdAt)}</span>${s.reviewNote ? `<span class="why">“${C.esc(s.reviewNote)}”</span>` : ''}</div>
       <div class="media-grid">${(s.media || []).map((m, i) => mediaThumb(m, i, false)).join('')}</div>`;
   } else {
     body = `
@@ -887,11 +902,13 @@ $('taskBody').addEventListener('click', e => {
 function addFiles(list) {
   const files = Array.from(list || []);
   if (!files.length) return;
-  const room = R.maxMedia - picked.length;
-  if (files.length > room) toast(`Maximaal ${R.maxMedia} bestanden per opdracht`);
+  const t = C.BY_NR.get(openNr), s = mySub(openNr);
+  const max = C.maxFiles(t);
+  const room = max - picked.length - (s && s.status === 'pending' ? (s.media || []).length : 0);
+  if (files.length > room) toast(`Maximaal ${max} bestanden bij deze opdracht`);
   files.slice(0, Math.max(0, room)).forEach(file => {
     const kind = file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : 'image';
-    picked.push({ file, kind, url: kind === 'audio' ? null : URL.createObjectURL(file) });
+    picked.push({ file, kind, type: kind, url: kind === 'audio' ? null : URL.createObjectURL(file) });
   });
   renderTask();
 }
@@ -902,8 +919,10 @@ async function send() {
   if (busy || openNr == null || !picked.length) return;
   const nr = openNr;
   const s = mySub(nr);
+  const t = C.BY_NR.get(nr);
   const block = submitBlock();
   if (block) { toast(block); return; }
+  if (!s && picked.length < t.min) { toast(`Eerst ${t.min} ${C.unit(t, 2)} kiezen`); return; }
   busy = true;
   const btn = $('sendBtn'), prog = $('upProgress'), fill = $('upFill'), err = $('upErr');
   btn.disabled = true; btn.textContent = 'Bezig met versturen…'; prog.hidden = false; err.hidden = true; fill.style.width = '2%';
@@ -973,9 +992,9 @@ function paintStand() {
   const lateSub = me.lateMin > 0 ? `${Math.ceil(me.lateMin)} min te laat · −3 per begonnen 5 minuten` : '−3 per begonnen 5 minuten te laat';
   $('ledger').innerHTML = [
     li('Goedgekeurde opdrachten', `${me.approved.length} opdrachten`, me.base, String(me.base)),
-    li('Dubbel of niks', dubSub, d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.pts}?` : null),
+    li('Dubbel of niks', dubSub, d ? d.value : 0, d && (d.state === 'open' || d.state === 'pending') ? `+${d.top}?` : null),
     li('Jurybonus', 'Legendarische uitvoering, door de begeleiders', me.jury),
-    li('Darts of pool gewonnen', 'Bonus bij opdracht 58', me.darts),
+    li('Bullen gewonnen', 'Bonus bij opdracht 58', me.darts),
     li('Te laat', lateSub, -me.latePen),
     ...me.penalties.map(p => li('Straf', C.esc(p.reason || ''), -(p.amount || 0))),
     `<li class="sum"><div class="lab-wrap"><span class="lab">Totaal</span><span class="sub">${me.halved ? `Meer dan 30 min te laat: de helft van ${me.sub}` : 'Zoals de begeleiders het nu tellen'}</span></div><span class="val">${me.total}</span></li>`,
@@ -998,7 +1017,7 @@ function checkEvents() {
       const s = subs.find(x => x.id === id);
       const t = C.BY_NR.get(s.nr);
       const dub = team().dubbel === s.nr;
-      if (st === 'approved') celebrate(s.nr, t.pts * (dub ? 2 : 1));
+      if (st === 'approved') celebrate(s.nr, C.award(s, t) * (dub ? 2 : 1));
       else if (st === 'rejected') disapprove(s.nr, s.reviewNote, dub ? -t.pts : 0);
     });
     Object.keys(P.seen).forEach(id => { if (!id.startsWith('__') && !cur[id]) { const nr = Number(id.split('-')[1]); toast(`De begeleiders hebben opdracht ${nr} weer opengezet. Je kunt opnieuw insturen.`, null, null, 6000); } });

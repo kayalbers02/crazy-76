@@ -112,6 +112,11 @@ a { color: var(--gold-hi); }
 .pips { display: inline-flex; align-items: center; gap: 3px; }
 .pip { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; }
 .pip.on { background: var(--ink); }
+.pip.maybe { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.need { margin: 0 0 10px; padding: 9px 12px; border: 2px solid var(--wait); border-radius: 6px; background: var(--wait-soft); color: var(--ink); font-size: 14.5px; line-height: 1.35; }
+.need.ok { border-color: var(--ok); background: var(--ok-soft); }
+.need b { font: 700 17px/1 var(--f-board); letter-spacing: 0.04em; text-transform: uppercase; }
+.short { color: var(--no); font-weight: 600; }
 .pts-b { margin-left: 6px; font: 700 16px/1 var(--f-board); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
 .proof { display: inline-flex; align-items: center; gap: 5px; font: 700 14px/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-board-muted); }
 .proof svg { width: 16px; height: 16px; }
