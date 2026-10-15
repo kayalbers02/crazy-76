@@ -8,206 +8,611 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Crazy 76">
-<meta name="theme-color" content="#0a2e1d">
+<meta name="theme-color" content="#04170f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Crazy 76 Dublin</title>
+<script>
+(function(){var d=document.documentElement,t=null;try{var m=/[?&]thema=(glas|nitro)(?:&|$)/.exec(location.search);if(m){t=m[1];localStorage.setItem('c76-thema',t);}else{t=localStorage.getItem('c76-thema');}}catch(e){}if(t!=='glas'&&t!=='nitro')t='glas';d.setAttribute('data-theme',t);try{var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',t==='nitro'?'#0a0706':'#04170f');}catch(e){}try{var l=document.createElement('link');l.rel='stylesheet';l.href=t==='nitro'?'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap':'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap';document.head.appendChild(l);}catch(e){}})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=Cinzel:wght@700;800;900&family=Libre+Caslon+Text:ital@1&display=swap">
 <link rel="stylesheet" href="shared/ui.css">
 <style>
-  :root { --top-h: 176px; }
-  .app { max-width: 600px; margin-inline: auto; padding-inline: 16px; padding-block: 0 calc(116px + env(safe-area-inset-bottom, 0px)); }
+  /* =====================================================================================
+     Teamapp: alleen opmaak en indeling van deze pagina. Kleuren, letters, curves, duur,
+     schaduwen en glas komen uit shared/ui.css (tokens per thema, Glas en Nitro).
+     ===================================================================================== */
+  :root {
+    --top-h: 196px;                 /* JS meet de kop (ResizeObserver) en zet dit opnieuw */
+    /* Choreografie van het feest. Deze waarden horen bij elkaar: samen wijzigen. */
+    --t-flip: 0.72s;                /* hero-flip = digit-a/b = cop-armen (het six-seven-gebaar) */
+    --t-judge: 1.3s;                /* frame-a/b = judge-nod (armen over elkaar) */
+    --t-bob: 0.36s;
+    --t-rays: 14s;
+    --t-rays-nope: 22s;
+    --t-vlieg: 1.7s;
+    --t-landing: 0.9s;
+    --t-draai: 1s;
+    --t-moonwalk: 1.8s;
+    --t-shake: 0.5s;
+    --t-spin: 0.9s;                 /* laadcirkel bij verbinden */
+    --beat: 0.12s;                  /* tel van het feest: elk onderdeel komt een paar tellen later */
+    --party-glow: var(--emerald);
+    --party-ray: var(--gold-hi);
+    --party-ray-2: var(--emerald-hi);
+  }
+  :root[data-theme="nitro"] { --party-glow: var(--gold-lo); --party-ray: var(--gold); --party-ray-2: var(--ruby); }
+
+  html { overflow-x: hidden; }
+  .app { max-width: 600px; margin-inline: auto; padding-inline: var(--gutter); --tabbar-max: 320px; }   /* toast en tabbalk even breed */
+  #main { padding-bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + 28px); }
+  /* Werkscherm (uren open): het levende licht speelt twee rondes en rust dan (batterij, geen
+     blur-herberekening per frame onder de glazen kop en tabbalk). De poortschermen blijven leven. */
+  body:has(#main:not([hidden]))::after,
+  body:has(#main:not([hidden])) .aurora .blob { animation-iteration-count: 2; animation-fill-mode: forwards; }
   body[data-team="A"] { --me: var(--team-a); --them: var(--team-b); }
   body[data-team="B"] { --me: var(--team-b); --them: var(--team-a); }
 
-  /* ---------- Inloggen: de pubgevel met vergulde bies, zoals Vat Nein ---------- */
-  .gate { padding-inline: 12px; }
-  .gate::before { content: ""; position: fixed; inset: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) 10px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 14px; pointer-events: none; }
-  .gate::after { content: ""; position: fixed; inset: calc(max(10px, env(safe-area-inset-top, 0px)) + 5px) 15px calc(max(10px, env(safe-area-inset-bottom, 0px)) + 5px) 15px; border: 1px solid rgba(217, 179, 90, 0.28); border-radius: 9px; pointer-events: none; }
-  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .team-pick { display: grid; padding: 0; overflow: hidden; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); text-align: center; box-shadow: 0 4px 0 #000; transition: transform 0.1s; }
-  .team-pick .eyebrow { padding: 7px 8px; border-bottom: 2px solid var(--ink); font: 700 14px/1 var(--f-board); letter-spacing: 0.1em; color: #fff; }
-  .team-pick.A .eyebrow { background: var(--team-a); }
-  .team-pick.B .eyebrow { background: var(--team-b); }
-  .team-pick .nm { padding: 18px 8px 20px; font: 700 24px/1.05 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
-  .team-pick[aria-pressed="true"] { background: #fff; box-shadow: 0 0 0 3px var(--gold-hi), 0 4px 0 #000; transform: translateY(-2px); }
+  /* ---------- Poortschermen: verbinden, koppelen, inloggen ---------- */
+  .gate { padding-inline: 4px; }
+  #viewWait { align-content: center; justify-items: start; padding-bottom: 20vh; }
+  .gate .eyebrow.pill { margin-bottom: -8px; }
+  #viewLogin { align-content: center; padding-bottom: calc(32px + 8vh + env(safe-area-inset-bottom, 0px)); }
+  .spinner {
+    width: 26px; height: 26px; border-radius: 50%;
+    box-shadow: inset 0 0 0 3px var(--fill-2);
+    position: relative;
+  }
+  .spinner::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid transparent; border-top-color: var(--label);
+    animation: spin var(--t-spin) linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ---------- Scorebord: drie vakjes op de pubgevel ---------- */
-  .top { position: sticky; top: 0; z-index: 20; margin-inline: -16px; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 0; background: linear-gradient(180deg, #0e3d27, var(--pub-bar)); color: var(--foam); box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.8); }
-  .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  .city { font: 700 10.5px/1 var(--f-display); letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); }
-  .team-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 48%; padding: 5px 10px 5px 14px; border: 1.5px solid rgba(217, 179, 90, 0.6); border-radius: 999px; background: rgba(0, 0, 0, 0.22); color: var(--foam); font: 700 15px/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; }
+  .teams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .team-pick {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    justify-items: start;
+    gap: 14px;
+    min-height: 112px;
+    padding: 14px 16px 16px;
+    border: 0;
+    border-radius: var(--r-lg);
+    --pick-bg: var(--glass-tint);
+    --pick-edge: var(--glass-rim), var(--glass-ring), var(--glass-depth);
+    background: var(--pick-bg);
+    box-shadow: var(--pick-edge);
+    color: var(--label);
+    text-align: left;
+    -webkit-user-select: none; user-select: none;
+    transition: transform var(--d-bouncy) var(--spring-bouncy), box-shadow var(--d-fast) var(--ease-out);
+  }
+  .team-pick.A { --team-c: var(--team-a); --on-team-c: var(--on-team-a); }
+  .team-pick.B { --team-c: var(--team-b); --on-team-c: var(--on-team-b); }
+  .team-pick .eyebrow { display: inline-flex; align-items: center; gap: 7px; }
+  .team-pick .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--team-c); }
+  .team-pick .nm { max-width: 100%; font: 700 var(--fs-title3) / var(--lh-title3) var(--f-ui); letter-spacing: var(--tr-title3); overflow-wrap: anywhere; }
+  .team-pick:active { --pick-bg: var(--glass-tint-press); transform: scale(var(--press-scale)); transition-duration: var(--d-press); transition-timing-function: var(--ease-press); }
+  .team-pick[aria-pressed="true"] { --pick-bg: var(--team-tile-bg); --pick-edge: inset 0 0 0 2px var(--team-c), var(--team-tile-edge), var(--glass-depth); }
+  /* gloed onder de vinger (beide pseudo's zijn het vinkje): als extra achtergrondlaag */
+  .team-pick.is-pressed { background: radial-gradient(var(--glow-r) circle at var(--px, 50%) var(--py, 50%), var(--glow-c), var(--glow-c0) var(--glow-stop)), var(--pick-bg); }
+  /* Vinkje rechtsboven (cirkel in teamkleur + vinkje), veert in bij kiezen */
+  .team-pick::before, .team-pick::after {
+    content: ""; position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%;
+    opacity: 0; transform: scale(0.4);
+    transition: opacity var(--d-fast) var(--ease-out), transform var(--d-snappy) var(--spring-bouncy);
+    pointer-events: none;
+  }
+  .team-pick::after { background: var(--team-c); }
+  .team-pick::before {
+    z-index: 1; background: var(--on-team-c);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.4l3.3 3.3L17.2 8.6' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.4l3.3 3.3L17.2 8.6' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+  }
+  .team-pick[aria-pressed="true"]::before, .team-pick[aria-pressed="true"]::after { opacity: 1; transform: none; }
+  #viewLogin .btn.block { margin-top: 4px; }
+
+  /* ---------- Scorebord: zwevende glazen kop (blur op ::before, zie .glass-bar) ---------- */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin-inline: calc(50% - 50vw);
+    padding: calc(8px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px), calc(50vw - 50%)) 10px max(var(--gutter), env(safe-area-inset-left, 0px), calc(50vw - 50%));
+    color: var(--label);
+  }
+  .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand .wordmark { font-size: 24px; }
+  .city { font: 600 var(--fs-caption) / 1 var(--f-ui); letter-spacing: var(--tr-eyebrow); text-transform: uppercase; color: var(--eyebrow); }   /* Vat Nein-eyebrow */
+  :root[data-theme="nitro"] .city { font-size: var(--fs-caption2); }
+  .team-btn {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 8px;
+    min-width: 0; max-width: 54%; min-height: 36px;
+    padding: 0 12px 0 14px;
+    border: 0; border-radius: var(--r-pill);
+    background: var(--glass-tint);
+    box-shadow: var(--glass-rim), var(--glass-ring), var(--glass-depth);
+    color: var(--label);
+    font: 600 var(--fs-subhead) / 1 var(--f-ui);
+    letter-spacing: var(--tr-control);
+    transition: transform var(--d-bouncy) var(--spring-bouncy);
+  }
+  .team-btn::after { content: ""; position: absolute; inset: -4px 0; }   /* raakvlak 44px */
+  .team-btn:active { background: var(--glass-tint-press); transform: scale(var(--press-scale)); transition-duration: var(--d-press); transition-timing-function: var(--ease-press); }
+  .team-btn:focus-visible { outline-offset: 3px; }
   .team-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .team-btn svg { width: 16px; height: 16px; flex: none; color: var(--gold); }
-  .stats { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 8px; padding-block: 12px 8px; }
-  .stat, .timer { display: grid; align-content: start; margin: 0; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; text-align: center; min-width: 0; }
-  .stat .unit { order: -1; display: block; padding: 5px 6px; border-bottom: 2px solid var(--ink); background: var(--me, var(--ink)); color: #fff; font: 700 13px/1 var(--f-board); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .stat.them .unit { background: var(--them, var(--ink)); }
-  .stat .big { display: block; padding: 6px 4px 7px; font: 700 40px/0.95 var(--f-board); font-variant-numeric: tabular-nums; }
-  .timer-label { order: -1; padding: 5px 6px; border-bottom: 2px solid var(--ink); background: var(--ink); color: #fff; font: 700 12.5px/1 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .timer-value { padding: 9px 4px 8px; font: 700 31px/0.95 var(--f-board); font-variant-numeric: tabular-nums; }
-  .timer[data-phase="idle"] .timer-label { background: var(--on-board-muted); }
-  .timer[data-phase="soon"] .timer-label { background: var(--wait); color: var(--ink); }
-  .timer[data-phase="done"] .timer-label { background: var(--ok); }
-  .timer[data-phase="over"] .timer-label, .timer[data-phase="late"] .timer-label { background: var(--no); }
-  .timer[data-phase="over"] .timer-value, .timer[data-phase="late"] .timer-value { color: var(--no); }
-  .subline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 10px; font-size: 13px; color: var(--on-pub-muted); }
-  .subline b { color: var(--foam); font-weight: 600; }
-  .subline .lead { font: 700 10.5px/1.2 var(--f-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-align: right; }
-  .progress-top { height: 4px; margin-inline: -16px; background: rgba(217, 179, 90, 0.22); }
-  .progress-top span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi)); transition: width 0.4s ease; }
-  body.mock .top::after { content: "Demo: alles blijft in deze browser"; display: block; margin-inline: -16px; padding: 3px 16px; background: var(--gold); color: var(--ink); font: 700 13px/1.3 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+  .team-btn svg { width: 17px; height: 17px; flex: none; color: var(--label-2); }
+  @media (max-width: 400px) { .team-btn { font-size: var(--fs-control-narrow); } }   /* Vat Nein Glas: 14px op een smalle telefoon */
 
-  /* ---------- Gereedschap ---------- */
-  .tools { display: grid; gap: 10px; padding-block: 14px 4px; }
-  .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 10px; background: rgba(0, 0, 0, 0.25); }
-  .seg button { min-height: 40px; padding: 6px 2px; border: 0; border-radius: 7px; background: transparent; color: var(--on-pub-muted); font: 700 10.5px/1 var(--f-display); letter-spacing: 0.1em; text-transform: uppercase; }
-  .seg button[aria-pressed="true"] { background: var(--foam); color: var(--ink); }
-  .seg .n { margin-left: 3px; font: 700 15px/1 var(--f-board); letter-spacing: 0; font-variant-numeric: tabular-nums; }
-  .search { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 10px; background: rgba(0, 0, 0, 0.25); color: var(--gold); }
-  .search:focus-within { border-color: var(--gold-hi); }
-  .search svg { width: 18px; height: 18px; flex: none; }
-  .search input { flex: 1; min-width: 0; padding-block: 11px; border: 0; outline: none; background: transparent; color: var(--foam); font-size: 16px; }
-  .search input::placeholder { color: var(--on-pub-muted); }
-  .cats { display: flex; gap: 6px; margin-inline: -16px; padding-inline: 16px; padding-block: 2px 4px; overflow-x: auto; scrollbar-width: none; }
-  .cats::-webkit-scrollbar { display: none; }
-  .cats button { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 3px 11px 3px 6px; border: 2px solid var(--ink); border-radius: 999px; background: var(--board); color: var(--ink); font: 700 14.5px/1 var(--f-board); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
-  .cats button::before { content: ""; width: 16px; height: 16px; border: 2px solid var(--ink); border-radius: 50%; background: var(--g); }
-  .cats .c { color: var(--on-board-muted); font-variant-numeric: tabular-nums; }
+  .stats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr); gap: 8px; padding-top: 8px; }
+  .stat, .timer {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+    margin: 0;
+    padding: 7px 12px 8px;
+    border-radius: var(--r-md);
+    background: var(--glass-tint);                 /* Vat Nein .glass, zelfde als de teamknop ernaast */
+    box-shadow: var(--glass-rim), var(--glass-ring);
+  }
+  .stat.us { --team-c: var(--me, var(--fill-1)); }      /* teamkleur-tegel (ui.css .team-tile) */
+  .stat.them { --team-c: var(--them, var(--fill-1)); }
+  .stat .unit, .timer-label {
+    order: -1;
+    display: block;
+    min-width: 0;
+    font: 600 var(--fs-caption) / var(--lh-caption) var(--f-ui);
+    letter-spacing: var(--tr-caption);
+    color: var(--label-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .stat .unit::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; vertical-align: 1px; background: var(--me, var(--label-3)); }
+  .stat.them .unit::before { background: var(--them, var(--label-3)); }
+  .stat .big, .timer-value {
+    display: block;
+    font: 700 28px / 1 var(--f-num);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--label);
+    white-space: nowrap;
+  }
+  .timer-value { font-size: 24px; line-height: 28px; letter-spacing: -0.02em; }
+  .timer[data-phase="idle"] .timer-label { color: var(--label-2); }
+  .timer[data-phase="idle"] .timer-value { color: var(--label-2); }
+  /* Fase als getinte capsule (leesbaar boven het glas, ook als er witte kaarten onder schuiven) */
+  .timer:is([data-phase="soon"], [data-phase="done"], [data-phase="over"], [data-phase="late"]) .timer-label {
+    justify-self: start; max-width: 100%; padding: 0 6px; border-radius: var(--r-pill);
+  }
+  .timer[data-phase="soon"] .timer-label { background: var(--wait); color: var(--on-wait); }
+  .timer[data-phase="done"] .timer-label { background: var(--ok); color: var(--on-ok); }
+  .timer[data-phase="over"] .timer-label, .timer[data-phase="late"] .timer-label { background: var(--no); color: var(--on-no); }
+  .timer[data-phase="over"] .timer-value, .timer[data-phase="late"] .timer-value { color: var(--no-text-page); }
+  .timer-label, .timer-value { transition: color var(--d-base) var(--ease-out), background-color var(--d-base) var(--ease-out); }
 
-  /* ---------- Straten en vakjes ---------- */
+  .subline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; font: 500 var(--fs-footnote) / var(--lh-footnote) var(--f-ui); letter-spacing: -.006em; color: var(--label-2); }
+  #subline { min-width: 0; }
+  .subline b { color: var(--label); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .subline .lead { flex: none; padding: 3px 10px; border-radius: var(--r-pill); background: var(--glass-tint); box-shadow: var(--glass-rim), var(--glass-ring); color: var(--label); font: 600 var(--fs-caption) / var(--lh-caption) var(--f-ui); }
+  .subline .lead:empty { display: none; }
+  /* Puntenvoortgang: dunne capsule in de inhoudskolom, onder de regel (raakt de haarlijn van de kop niet) */
+  .progress-top { position: relative; height: 3px; margin-top: 8px; border-radius: var(--r-pill); background: var(--fill-2); overflow: hidden; pointer-events: none; }
+  .progress-top span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi)); transition: width var(--d-slow) var(--spring-sheet); }
+  body.mock .top::after {
+    content: "Demo: alles blijft in deze browser";
+    display: block; width: -webkit-fit-content; width: fit-content; max-width: 100%;
+    margin: 10px auto 0; padding: 3px 12px;
+    border-radius: var(--r-pill);
+    background: var(--amber-glass);                /* Vat Nein .hint.notice (zonder de buitengloed: hij zit in de kop) */
+    box-shadow: inset 0 0 0 .5px var(--amber-border), var(--glass-rim);
+    color: var(--amber-text);
+    font: 600 var(--fs-caption) / var(--lh-caption) var(--f-ui);
+    text-align: center;
+  }
+
+  /* ---------- Weergaven: zachte ingang bij wisselen (geen vaste kinderen hierin) ---------- */
+  #viewList, #viewStand { animation: c76-enter var(--d-snappy) var(--spring-snappy) backwards; }   /* backwards: daarna weer transform none */
+
+  /* ---------- Gereedschap boven de lijst ---------- */
+  .tools { display: grid; gap: 12px; padding-top: 16px; }
+  .cats {
+    margin: -3px calc(-1 * var(--gutter));
+    padding: 5px var(--gutter);
+    /* rand zacht laten uitlopen: leest als 'scrolt verder', niet als afgeknipt */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - 28px), transparent 100%);
+  }
+  /* Categorie = afgerond vierkantje (zoals het nummer), team = rondje */
+  .cats button::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 2.5px; background: var(--g); box-shadow: var(--chip-rim), inset 0 0 0 0.5px var(--separator); }
+
+  /* ---------- Categorieën: kopband over de volle breedte, dekkend (geen blur). Vast onder de kop
+     sluit hij er naadloos op aan, als een tweede rij van de navigatiebalk. ---------- */
   .cat { scroll-margin-top: var(--top-h); }
-  .cat-head { position: sticky; top: var(--top-h); z-index: 5; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 12px; margin: 18px -16px 0; padding: 10px 16px 9px; background: var(--pub-deep); border-block: 1.5px solid rgba(217, 179, 90, 0.5); }
-  .cat-head .h-cat { font-size: 16px; }
-  .cat-head .h-cat::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 9px; border: 1.5px solid var(--gold-hi); background: var(--g); vertical-align: -1px; }
-  .cat-count { font: 700 14px/1 var(--f-board); letter-spacing: 0.05em; color: var(--on-pub-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .cat-note { grid-column: 1 / -1; font: italic 400 13.5px/1.3 var(--f-flavor); color: var(--gold); }
-  .cat-head .bar { grid-column: 1 / -1; height: 3px; }
-  .task { display: block; margin-top: 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; cursor: pointer; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
-  .cat-head + .task { margin-top: 12px; }
-  .band { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 12px; border-bottom: 2px solid var(--ink); background: var(--g); color: var(--g-ink); }
-  .nr { font: 700 24px/1 var(--f-board); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
-  .nr::before { content: "Nr. "; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
-  .price { font: 700 15px/1 var(--f-board); letter-spacing: 0.1em; text-transform: uppercase; }
-  .task .body { padding: 11px 12px 12px; }
-  .text { font-size: 16px; line-height: 1.42; text-wrap: pretty; }
-  .text b { font: 700 1.04em/1.2 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; }
-  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 10px; }
-  .dubslot:empty { display: none; }
-  .dub { min-height: 30px; padding: 2px 10px; border: 2.5px dashed var(--g-orange); border-radius: 6px; background: var(--board-hi); color: #a34a00; font: 700 16px/1 var(--f-board); letter-spacing: 0.04em; }
-  .dub-on { display: inline-flex; align-items: center; padding: 3px 8px; border: 2px solid var(--ink); border-radius: 6px; background: var(--g-orange); color: var(--ink); font: 700 14px/1 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; }
-  /* Status als stempel op het vakje */
-  .st { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board-hi); color: var(--ink); font: 700 15px/1 var(--f-board); letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 2px 0 var(--ink); }
-  .st .ico { display: grid; }
-  .st .ico svg { width: 15px; height: 15px; }
-  .task.pending .st { border: 2.5px dashed var(--wait); background: var(--wait-soft); color: #8a3f00; box-shadow: none; }
-  .task.approved .st, .task.rejected .st { border-width: 3px; background: transparent; box-shadow: none; transform: rotate(-4deg); }
-  .task.approved .st { border-color: var(--ok); color: #05773a; }
-  .task.rejected .st { border-color: var(--no); color: var(--no); }
-  .task.approved .text, .task.rejected .text { color: var(--on-board-muted); }
-  .task.rejected .text { text-decoration: line-through; text-decoration-color: rgba(25, 25, 25, 0.35); }
-  /* Afgekeurd = omgedraaide kaart, zoals een straat met hypotheek */
-  .task.rejected .band { background: repeating-linear-gradient(-45deg, #8d8d8d 0 8px, #787878 8px 16px); color: #fff; }
-  .empty { padding: 36px 8px; text-align: center; color: var(--on-pub-muted); text-wrap: balance; }
+  .cat-head {
+    position: sticky;
+    top: calc(var(--top-h) - 1px);
+    z-index: 5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 24px calc(50% - 50vw) 0;
+    padding: 10px max(var(--gutter), env(safe-area-inset-right, 0px), calc(50vw - 50%)) 9px max(var(--gutter), env(safe-area-inset-left, 0px), calc(50vw - 50%));
+    background: var(--bar-solid);
+    box-shadow: inset 0 calc(-1 * var(--hair-w)) 0 var(--glass-edge);
+    color: var(--label);
+  }
+  .cat-head .h-cat { display: flex; align-items: center; gap: 10px; min-width: 0; font: 600 var(--fs-headline) / var(--lh-headline) var(--f-ui); letter-spacing: var(--tr-headline); color: var(--label); }
+  .cat-head .h-cat::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--g); box-shadow: var(--chip-rim), inset 0 0 0 0.5px var(--separator); }
+  .cat-count { font: 500 var(--fs-footnote) / 1 var(--f-ui); color: var(--label-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cat-note { grid-column: 1 / -1; font: 400 var(--fs-footnote) / var(--lh-footnote) var(--f-ui); color: var(--label-2); }
+  .cat-head .bar { grid-column: 1 / -1; height: 2px; background: var(--fill-2); --bar-c: var(--g); }
+  .cat-head + .task { margin-top: 14px; }
 
-  /* ---------- Opdracht-kaart ---------- */
-  .task-dlg .sheet { gap: 14px; }
-  .task-dlg .sheet-head { align-items: center; margin: -18px -18px 0; padding: 10px 12px 10px 16px; border-bottom: 2px solid var(--ink); background: var(--g, var(--board-lo)); color: var(--g-ink, var(--ink)); }
-  .task-dlg .sheet-head h2 { color: inherit; }
-  .task-dlg .text { font-size: 17px; }
-  .metaline { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  /* ---------- Opdrachtkaart (76x): statisch, geen blur ---------- */
+  .task {
+    position: relative;
+    display: block;
+    margin-top: 12px;
+    border-radius: var(--r-lg);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: transform var(--d-snappy) var(--spring-snappy), background-color var(--d-fast) var(--ease-out);
+  }
+  /* iOS zet :active al bij aanraken: pas na een korte tel indrukken, dan flitst een scrollbeweging niet */
+  .task:active {
+    background: var(--card-press);
+    transform: scale(0.985);
+    transition: transform var(--d-press) var(--ease-out) var(--d-press-delay), background-color var(--d-press) var(--ease-out) var(--d-press-delay);
+  }
+  #list .task, #list .dub { scroll-margin-top: calc(var(--top-h) + 64px); scroll-margin-bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + 16px); }
+  .task .band { display: flex; align-items: center; gap: 10px; padding: 14px 16px 0; }
+  .nr {
+    display: inline-grid; place-items: center;
+    min-width: 30px; height: 30px; padding: 0 8px;
+    border-radius: var(--r-sm);
+    background: var(--glass-sheen), var(--g);
+    box-shadow: var(--chip-rim);
+    color: var(--g-ink);
+    font: 700 var(--fs-subhead) / 1 var(--f-num);
+    letter-spacing: .01em;                         /* ronde cijfers <= 20px (Vat Nein) */
+    font-variant-numeric: tabular-nums;
+  }
+  .price { font: 600 var(--fs-footnote) / 1 var(--f-ui); color: var(--fg-2); }
+  .task .body { padding: 10px 16px 14px; }
+  .text { font: 400 var(--fs-callout) / 1.42 var(--f-ui); letter-spacing: var(--tr-callout); text-wrap: pretty; }
+  .text b { font-weight: 700; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+  .dubslot:empty { display: none; }
+  .dub {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 40px; min-height: 28px; padding: 0 11px;
+    border: 0; border-radius: var(--r-pill);
+    background: var(--wait-soft);
+    color: var(--wait-text);
+    box-shadow: inset 0 0 0 var(--hair-w) var(--wait);
+    font: 700 var(--fs-footnote) / 1 var(--f-num);
+    transition: transform var(--d-snappy) var(--spring-snappy);
+  }
+  .dub::after { content: ""; position: absolute; inset: -8px -4px; }
+  .dub:active { transform: scale(var(--press-scale-sm)); transition-duration: var(--d-press); }
+  .dub-on {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    background: var(--wait);
+    color: var(--on-wait);
+    font: 700 var(--fs-caption) / 1 var(--f-ui);
+    white-space: nowrap;
+  }
+  .dub-on::first-letter { text-transform: uppercase; }
+  .task:has(.dub-on) { box-shadow: inset 0 0 0 1.5px var(--wait), var(--shadow-card); }
+
+  /* Status als iOS-capsule */
+  .st {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 28px; padding: 0 12px 0 10px;
+    border-radius: var(--r-pill);
+    background: var(--ctl-2);
+    color: var(--tint-text);
+    font: 600 var(--fs-footnote) / 1 var(--f-ui);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .st .ico { display: grid; }
+  .st .ico svg { width: 14px; height: 14px; }
+  .task.pending .st { background: var(--wait-soft); color: var(--wait-text); }
+  .task.approved .st { background: var(--ok-soft); color: var(--ok-text); }
+  .task.rejected .st { background: var(--no); color: var(--on-no); }   /* gesloten: volle rode capsule op de gedempte kaart */
+  .task.approved .text { color: var(--fg-2); }
+  /* Afgekeurd = gesloten: gedempte kaart, grijze badge, doorgestreepte tekst; de rode capsule blijft vol */
+  .task.rejected { background: var(--card-muted); box-shadow: inset 0 0 0 var(--hair-w) var(--hair); }
+  .task.rejected:active { background: var(--card-muted); }
+  .task.rejected .nr { background: var(--ctl-1); color: var(--fg-2); box-shadow: none; }
+  .task.rejected .price, .task.rejected .proof { color: var(--fg-2); }
+  .task.rejected .text { color: var(--fg-2); text-decoration: line-through; text-decoration-color: var(--fg-2); text-decoration-thickness: 1px; }
+  .task.rejected .pip.on { background: var(--fg-2); }
+
+  #viewList .tools > .notice.on-page { background: var(--glass-tint); box-shadow: var(--glass-rim), var(--glass-depth); border-radius: var(--r-tray-item); color: var(--label); font-weight: 600; letter-spacing: var(--tr-hint); }   /* Vat Nein .hint */
+  #viewList .tools > .notice.on-page b { font-weight: 700; }
+  #viewList .tools > .notice.on-page.gold b { color: var(--gold-text-page); }
+  #viewList .tools > .notice.on-page.grey { color: var(--label-2); }
+
+  .empty::before {
+    content: ""; display: block; width: 40px; height: 40px; margin: 0 auto 12px;
+    background: var(--label-3);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.3-4.3'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M20 20l-4.3-4.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  /* ---------- Opdrachtsheet ---------- */
+  /* Een sheet krijgt eerst focus op zijn titel (autofocus, tabindex -1): geen ring om de sluitknop als hij
+     zonder tik opent (adres met #opdracht-N); de toetsenbordvolgorde begint daarna gewoon bij ×. */
+  dialog .sheet-head h2[tabindex="-1"]:focus { outline: none; }
+  .task-dlg .sheet-head { padding-bottom: 14px; }
+  .task-dlg .sheet-head h2 { display: flex; align-items: center; gap: 10px; }
+  .task-dlg .sheet-head h2::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 4px; background: var(--g, var(--fg-3)); box-shadow: inset 0 0 0 var(--hair-w) var(--hair); }
+  .task-dlg .text { font: 400 var(--fs-body) / 1.42 var(--f-ui); letter-spacing: var(--tr-body); }
+  .metaline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .metaline .pips { gap: 4px; }
   .pick-btns { display: grid; gap: 8px; }
-  .status-head { display: grid; gap: 4px; padding: 12px 14px; border: 3px solid; border-radius: 6px; }
-  .status-head.pending { border: 2.5px dashed var(--wait); background: var(--wait-soft); color: #8a3f00; }
-  .status-head.approved { border-color: var(--ok); background: var(--ok-soft); color: #05602f; }
-  .status-head.rejected { border-color: var(--no); background: var(--no-soft); color: #8f1511; }
-  .status-head .big { font: 700 30px/1 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; }
-  .status-head .why { color: var(--ink); font-size: 15px; }
+
+  /* Status van de inzending: getint kaartje met symbool */
+  .status-head {
+    --sh-c: var(--fg-3); --sh-soft: var(--ctl-2); --sh-text: var(--fg);
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 3px;
+    align-items: start;
+    padding: 14px 16px 15px;
+    border-radius: var(--r-lg);
+    background: var(--sh-soft);
+    color: var(--fg-2);
+    font: 400 var(--fs-subhead) / var(--lh-subhead) var(--f-ui);
+  }
+  .status-head > span { grid-column: 2; min-width: 0; }
+  .status-head::before {
+    content: ""; grid-row: 1 / span 3; width: 32px; height: 32px; background: var(--sh-c);
+    -webkit-mask: var(--sh-ico) center / contain no-repeat; mask: var(--sh-ico) center / contain no-repeat;
+  }
+  .status-head .big { font: 700 var(--fs-title2) / var(--lh-title2) var(--f-ui); letter-spacing: var(--tr-title2); color: var(--sh-text); }
+  .status-head .why { color: var(--fg); font-weight: 500; }
+  .status-head.pending { --sh-c: var(--wait); --sh-soft: var(--wait-soft); --sh-text: var(--wait-text);
+    --sh-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='24' height='24' fill='%23fff'/%3E%3Cpath d='M12 6.6V12l3.7 2.3' fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='12' cy='12' r='11.5' mask='url(%23m)'/%3E%3C/svg%3E"); }
+  .status-head.approved { --sh-c: var(--ok); --sh-soft: var(--ok-soft); --sh-text: var(--ok-text);
+    --sh-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='24' height='24' fill='%23fff'/%3E%3Cpath d='M7.2 12.4l3.2 3.2 6.5-6.7' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='12' cy='12' r='11.5' mask='url(%23m)'/%3E%3C/svg%3E"); }
+  .status-head.rejected { --sh-c: var(--no); --sh-soft: var(--no-soft); --sh-text: var(--no-text);
+    --sh-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='24' height='24' fill='%23fff'/%3E%3Cpath d='M8.4 8.4l7.2 7.2M15.6 8.4l-7.2 7.2' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='12' cy='12' r='11.5' mask='url(%23m)'/%3E%3C/svg%3E"); }
+  .status-head.approved .big { font-family: var(--f-num); letter-spacing: -0.02em; }
+
+  /* ---------- Dubbel of niks: twee keuzes onder elkaar, de bevestiging bovenaan (iOS-melding) ---------- */
+  #dubDlg .grid2 { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  #dubOk { order: -1; }
+
+  /* ---------- Teamsheet ---------- */
+  .team-sheet .btn-stack { display: grid; gap: 8px; }
+  .team-sheet .btn-stack + .btn { margin-top: 4px; }
 
   /* ---------- Stand ---------- */
-  .stand { display: grid; gap: 16px; padding-block: 18px; }
-  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .vs .card { display: grid; gap: 4px; padding-bottom: 12px; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; text-align: center; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6); }
-  .vs .card .eyebrow { padding: 6px; border-bottom: 2px solid var(--ink); color: #fff; font: 700 14px/1 var(--f-board); letter-spacing: 0.1em; }
-  .vs .card.A .eyebrow { background: var(--team-a); }
-  .vs .card.B .eyebrow { background: var(--team-b); }
-  .vs .nm { padding: 8px 8px 0; font: 700 18px/1.05 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
-  .vs .tot { font: 700 64px/0.9 var(--f-board); font-variant-numeric: tabular-nums; }
-  .vs .sml { padding-inline: 8px; font-size: 13px; color: var(--on-board-muted); }
-  .vs .sml b { color: var(--ink); }
-  .vs .card.lead { box-shadow: 0 0 0 3px var(--gold-hi), 0 3px 0 rgba(0, 0, 0, 0.6); }
-  .verdict { padding: 12px 14px; border: 2.5px dashed var(--g-orange); border-radius: 6px; background: var(--board-hi); color: var(--ink); font: 700 19px/1.2 var(--f-board); letter-spacing: 0.03em; text-transform: uppercase; text-align: center; text-wrap: balance; }
-  .cats-score { display: grid; gap: 12px; }
-  .cs { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: baseline; }
-  .cs-name { font: 700 16px/1.1 var(--f-board); letter-spacing: 0.05em; text-transform: uppercase; color: var(--foam); }
-  .cs-name::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 1.5px solid var(--gold-hi); background: var(--g); }
-  .cs-num { font-size: 13px; color: var(--on-pub-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .cs-num b { color: var(--foam); }
-  .cs .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; }
-  .section-label { margin-top: 8px; }
+  .stand { display: grid; gap: 12px; padding-block: 20px 8px; }
+  .stand .vs:empty, .stand .verdict:empty, .stand .ledger:empty, .stand .cats-score:empty { display: none; }
+  .verdict {
+    padding: 14px 18px;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    font: 600 var(--fs-headline) / var(--lh-headline) var(--f-ui);
+    letter-spacing: var(--tr-headline);
+    text-align: center;
+    text-wrap: balance;
+  }
+  .section-label { margin-top: 14px; padding-inline: 4px; }
+  .cats-score.card { padding: 16px 16px 18px; }
+  .stand > .fine { padding: 4px 4px 0; }
+  .vs .card .sml { text-wrap: balance; }
+  .vs .sml .nw { white-space: nowrap; }
 
-  /* ---------- Feest: een superheld viert de gehaalde opdracht ---------- */
-  .party { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: radial-gradient(120% 80% at 50% 42%, var(--pub-glow) 0%, var(--pub) 55%, var(--pub-deep) 100%); overflow: hidden; cursor: pointer; animation: party-in 0.25s ease both; }
-  .party.out { animation: party-out 0.25s ease both; }
-  .party::before { content: ""; position: absolute; inset: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) 10px; border: 1.5px solid rgba(217, 179, 90, 0.55); border-radius: 14px; pointer-events: none; z-index: 3; }
-  #partyClovers { position: absolute; inset: 0; pointer-events: none; }
-  .party-in { position: relative; display: grid; justify-items: center; gap: 8px; width: min(380px, 100%); text-align: center; }
-  .party-in.shake { animation: party-shake 0.5s 0.42s ease-out both; }
-  .party-title { font: 900 clamp(36px, 11.5vw, 54px)/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; animation: party-pop 0.5s 0.1s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
-  .party-card { display: flex; align-items: stretch; border: 2px solid var(--ink); border-radius: 6px; background: var(--board); color: var(--ink); overflow: hidden; box-shadow: 0 4px 0 #000; transform: rotate(-2deg); animation: party-pop 0.5s 0.25s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
-  .party-card .band { display: grid; place-items: center; padding: 6px 12px; border-bottom: 0; border-right: 2px solid var(--ink); font: 700 17px/1.05 var(--f-board); letter-spacing: 0.1em; text-transform: uppercase; }
-  .party-pts { display: flex; align-items: baseline; gap: 6px; padding: 4px 14px 6px; font: 700 46px/1 var(--f-board); font-variant-numeric: tabular-nums; }
-  .party-pts small { font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
-  .party-hero { font: italic 400 17px/1.3 var(--f-flavor); color: var(--gold); min-height: 1.3em; }
-  .party-hint { font: 700 10.5px/1 var(--f-display); letter-spacing: 0.2em; text-transform: uppercase; color: var(--on-pub-muted); }
+  /* =====================================================================================
+     FEEST: een superheld viert de gehaalde opdracht (en AFGEKEURD met Kay en Juf).
+     Alles hieronder is één scherm; de inhoud wordt per keer opnieuw opgebouwd, dus elke
+     ingangsanimatie speelt per item opnieuw. De schud zit op .party-stack (ook nieuw per item).
+     ===================================================================================== */
+  .party {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: radial-gradient(120% 85% at 50% 40%, var(--bg) 0%, var(--bg-deep) 100%);
+    color: var(--label);
+    overflow: hidden;
+    overscroll-behavior: contain;
+    touch-action: none;
+    cursor: pointer;
+    -webkit-user-select: none; user-select: none;
+    animation: party-in var(--d-base) var(--ease-out) both;
+  }
+  .party.out { animation: party-out var(--d-fast) var(--ease-in) both; }
+  /* Licht achter de held (feest) en een robijnrode gloed (afgekeurd) die erover heen vloeit */
+  .party::before, .party::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+  .party::before { background: radial-gradient(60% 42% at 50% 58%, var(--party-glow) 0%, transparent 72%); opacity: 0.55; }
+  .party::after {
+    background: radial-gradient(110% 78% at 50% 44%, var(--ruby) 0%, var(--nope-deep) 70%);
+    opacity: 0;
+    transition: opacity var(--d-base) var(--ease-out);
+  }
+  @supports (color: color-mix(in srgb, red 50%, blue)) {
+    .party::before { background: radial-gradient(62% 44% at 50% 58%, color-mix(in srgb, var(--party-glow) 70%, transparent) 0%, transparent 72%); opacity: 1; }
+    .party::after { background: radial-gradient(110% 78% at 50% 44%, color-mix(in srgb, var(--ruby) 46%, var(--nope-deep)) 0%, var(--nope-deep) 74%); }
+  }
+  .party.nope::after { opacity: 1; }
+  #partyClovers { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .party-in { position: relative; z-index: 2; width: min(400px, 100%); }
+  .party-stack { display: grid; justify-items: center; gap: 12px; text-align: center; }
+  .party-in.shake > .party-stack { animation: party-shake var(--t-shake) calc(var(--beat) * 3.5) var(--ease-out) both; }
 
-  /* Het podium: zonnestralen zoals in de portretten, de held, de cijfers en een stripkreet */
-  .stage { --stage-h: min(46vh, 420px); position: relative; display: grid; place-items: end center; width: 100%; height: var(--stage-h); margin-top: 4px; }
-  .rays { position: absolute; left: 50%; top: 52%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(242, 123, 31, 0.5) 0 9deg, rgba(7, 163, 82, 0.35) 9deg 18deg); -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 68%); mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 68%); animation: rays-spin 14s linear infinite, party-in 0.6s ease both; }
-  .ring { position: absolute; left: 50%; bottom: 2%; width: 40%; aspect-ratio: 3.2; transform: translate(-50%, 50%) scale(0); border: 5px solid var(--gold-hi); border-radius: 50%; opacity: 0; }
-  .hero-move { position: relative; height: 100%; display: grid; place-items: end center; will-change: transform; }
-  .hero-bob { height: 100%; display: grid; place-items: end center; transform-origin: 50% 100%; animation: hero-bob 0.36s ease-in-out infinite alternate; }
-  .hero-img { display: block; height: var(--stage-h); width: auto; max-width: none; filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.35)); animation: hero-flip 0.72s linear infinite; -webkit-user-drag: none; user-select: none; }
-  .digit { position: absolute; top: 16%; font: 700 60px/1 var(--f-board); color: var(--gold-hi); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 #000; }
+  .party-title {
+    position: relative;
+    isolation: isolate;
+    font: var(--w-wordmark) clamp(46px, 14vw, 66px) / 1 var(--f-display);
+    font-variation-settings: var(--wordmark-opsz);
+    letter-spacing: var(--tr-wordmark);
+    text-shadow: none;
+    padding-inline: 0.06em;
+    animation: party-pop var(--d-bouncy) var(--spring-bouncy) var(--beat) both;
+  }
+  .party-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 20px 7px 7px;
+    border-radius: var(--r-pill);
+    background: var(--glass-tint);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+            backdrop-filter: var(--glass-blur-sm);
+    box-shadow: var(--glass-rim), var(--glass-depth);
+    color: var(--label);
+    animation: c76-glass-in var(--d-bouncy) var(--spring-bouncy) calc(var(--beat) * 2) both;   /* Vat Nein glass-in */
+  }
+  .party-card .band {
+    display: grid; place-items: center;
+    min-height: 40px; padding: 0 16px;
+    border-radius: var(--r-pill);
+    background: var(--glass-sheen), var(--g, var(--fill-1));
+    box-shadow: var(--chip-rim);
+    color: var(--g-ink, var(--label));
+    font: 600 var(--fs-subhead) / 1 var(--f-ui);
+    letter-spacing: var(--tr-subhead);
+    white-space: nowrap;
+  }
+  .party-pts {
+    display: flex; align-items: baseline; gap: 6px;
+    font: 800 44px / 1 var(--f-num);
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    color: var(--gold-text-page);
+    white-space: nowrap;
+    animation: c76-roll-up var(--d-snappy) var(--spring-snappy) calc(var(--beat) * 4) both;
+  }
+  .party-pts small { font: 600 var(--fs-subhead) / 1 var(--f-ui); letter-spacing: var(--tr-subhead); color: var(--label-2); }
+  .party-hero {
+    min-height: 1.4em;
+    max-width: 32ch;
+    font: 500 var(--fs-callout) / var(--lh-callout) var(--f-ui);
+    color: var(--label-2);
+    text-wrap: balance;
+    animation: c76-fade var(--d-slow) var(--ease-out) calc(var(--beat) * 7) both;
+  }
+  :root[data-theme="nitro"] .party-hero, :root[data-theme="nitro"] .nope-reason { font-family: var(--f-display); font-style: italic; font-size: 18px; line-height: 1.3; color: var(--gold-text-page); }
+  .party-hint {
+    padding: 10px 18px 11px;
+    border-radius: var(--r-pill);
+    background: var(--glass-tint);
+    box-shadow: var(--glass-rim), var(--glass-depth);
+    font: 600 var(--fs-subhead) / var(--lh-subhead) var(--f-ui);
+    letter-spacing: var(--tr-hint);
+    color: var(--cream-hi);                        /* Vat Nein Nitro .again */
+    animation: c76-glass-in var(--d-bouncy) var(--spring-bouncy) calc(var(--beat) * 11) both;   /* Vat Nein .hint + glass-in */
+  }
+
+  /* Het podium: zonnestralen, de held, de cijfers en een stripkreet */
+  .stage { --stage-h: min(44vh, 400px); position: relative; display: grid; place-items: end center; width: 100%; height: var(--stage-h); margin-top: 2px; }
+  @supports (height: 1svh) { .stage { --stage-h: min(44svh, 400px); } }
+  .rays {
+    position: absolute; left: 50%; top: 54%;
+    width: 150%; aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: repeating-conic-gradient(from 0deg, var(--fill-2) 0 9deg, transparent 9deg 18deg);
+    -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 34%, transparent 66%);
+            mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 34%, transparent 66%);
+    animation: rays-spin var(--t-rays) linear infinite, c76-fade var(--d-slow) var(--ease-out) both;
+  }
+  @supports (color: color-mix(in srgb, red 50%, blue)) {
+    .rays { background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--party-ray) 30%, transparent) 0 9deg, color-mix(in srgb, var(--party-ray-2) 9%, transparent) 9deg 18deg); }
+    .party.nope .rays { background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--ruby-hi) 30%, transparent) 0 9deg, transparent 9deg 18deg); }
+  }
+  .party.nope .rays { animation: rays-spin var(--t-rays-nope) linear infinite reverse, c76-fade var(--d-slow) var(--ease-out) both; }
+  .ring { position: absolute; left: 50%; bottom: 2%; width: 40%; aspect-ratio: 3.2; transform: translate(-50%, 50%) scale(0); border-radius: 50%; box-shadow: 0 0 0 4px var(--gold-hi), inset 0 0 0 1px var(--gold-hi); opacity: 0; }
+  .hero-move { position: relative; height: 100%; display: grid; place-items: end center; }
+  .hero-bob { height: 100%; display: grid; place-items: end center; transform-origin: 50% 100%; animation: hero-bob var(--t-bob) var(--ease-loop) infinite alternate; }
+  .hero-img { display: block; height: var(--stage-h); width: auto; max-width: none; animation: hero-flip var(--t-flip) linear infinite; -webkit-user-drag: none; user-select: none; }
+  /* Vaste contactschaduw op de grond (beweegt niet mee met het wippen: geen filter per frame) */
+  .stage:not(.duo):not(.fallback)::before, .judge::before {
+    content: ""; position: absolute; left: 50%; bottom: -4px;
+    width: 36%; height: 18px; transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--contact-shadow), transparent);
+    pointer-events: none;
+  }
+  .judge::before { width: 62%; bottom: -3px; }
+  .digit {
+    position: absolute; top: 15%;
+    font: 800 64px / 1 var(--f-num);
+    letter-spacing: -0.04em;
+    color: var(--gold-hi);
+    text-shadow: 0 6px 18px var(--bg-deep);
+  }
   /* In de sprite is de linkerhand (voor de kijker) omhoog; in spiegelbeeld de rechter. */
-  .digit.d7 { left: 4%; animation: digit-a 0.72s ease-in-out infinite; }
-  .digit.d6 { right: 4%; animation: digit-b 0.72s ease-in-out infinite; }
-  .burst { position: absolute; right: -2%; bottom: 8%; z-index: 2; display: grid; place-items: center; width: 128px; aspect-ratio: 1; padding: 22px; background: var(--g-yellow); color: var(--ink); font: 700 24px/0.95 var(--f-board); letter-spacing: 0.02em; text-transform: uppercase; clip-path: polygon(50% 0%, 61% 16%, 79% 7%, 80% 26%, 98% 28%, 88% 45%, 100% 60%, 82% 66%, 84% 86%, 66% 80%, 56% 100%, 45% 82%, 27% 93%, 25% 73%, 5% 72%, 15% 54%, 0% 40%, 19% 33%, 14% 13%, 34% 18%); filter: drop-shadow(0 3px 0 #000); transform: rotate(12deg); animation: burst-pop 0.45s 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+  .digit.d7 { left: 4%; animation: digit-a var(--t-flip) var(--ease-loop) infinite; }
+  .digit.d6 { right: 4%; animation: digit-b var(--t-flip) var(--ease-loop) infinite; }
+  .burst {
+    position: absolute; right: -2%; bottom: 8%; z-index: 2;
+    display: grid; place-items: center;
+    width: 124px; aspect-ratio: 1; padding: 22px;
+    background: var(--g5); color: var(--g5-ink);
+    font: 800 22px / 0.95 var(--f-rounded);
+    letter-spacing: -0.01em;
+    clip-path: polygon(50% 0%, 61% 16%, 79% 7%, 80% 26%, 98% 28%, 88% 45%, 100% 60%, 82% 66%, 84% 86%, 66% 80%, 56% 100%, 45% 82%, 27% 93%, 25% 73%, 5% 72%, 15% 54%, 0% 40%, 19% 33%, 14% 13%, 34% 18%);
+    transform: rotate(12deg);
+    animation: burst-pop var(--d-bouncy) var(--spring-bouncy) calc(var(--beat) * 6) both;
+  }
   .burst.left { right: auto; left: -2%; transform: rotate(-12deg); }
   .cop { width: auto; height: var(--stage-h); overflow: visible; }
-  .cop .ink { stroke: var(--ink); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
-  .cop .arm-l { transform-origin: 92px 130px; transform: rotate(14deg); animation: arm-l 0.72s ease-in-out infinite; }
-  .cop .arm-r { transform-origin: 168px 130px; transform: rotate(10deg); animation: arm-r 0.72s ease-in-out infinite; }
-  .cop .head { transform-origin: 130px 112px; animation: cop-nod 0.72s ease-in-out infinite; }
+  .cop .ink { stroke: var(--bg-deep); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+  .cop .arm-l { transform-origin: 92px 130px; transform: rotate(14deg); animation: arm-l var(--t-flip) var(--ease-loop) infinite; }
+  .cop .arm-r { transform-origin: 168px 130px; transform: rotate(10deg); animation: arm-r var(--t-flip) var(--ease-loop) infinite; }
+  .cop .head { transform-origin: 130px 112px; animation: cop-nod var(--t-flip) var(--ease-loop) infinite; }
   .stage.fallback .hero-img { animation: none; }
-  .clover { position: absolute; top: -40px; left: var(--x); width: var(--s); height: var(--s); background: var(--c); -webkit-mask: var(--clover) center / contain no-repeat; mask: var(--clover) center / contain no-repeat; animation: clover-fall var(--d) var(--w) linear infinite; opacity: 0.9; }
+  .clover { position: absolute; top: -40px; left: var(--x); width: var(--s); height: var(--s); background: var(--c); -webkit-mask: var(--clover) center / contain no-repeat; mask: var(--clover) center / contain no-repeat; animation: clover-fall var(--d) var(--w) linear infinite; opacity: 0.92; }
   :root { --clover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-13 -13 26 26'%3E%3Cpath transform='rotate(45)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(135)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(225)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3Cpath transform='rotate(315)' d='M0 0C-1.65-2.75-6.8-4.6-6.4-8.6C-6-11.9-1.3-12.1 0-8.8C1.3-12.1 6-11.9 6.4-8.6C6.8-4.6 1.65-2.75 0 0Z'/%3E%3C/svg%3E"); }
 
   /* ---------- Afgekeurd: de twee begeleiders kruisen hun armen ---------- */
-  .party.nope { background: radial-gradient(120% 80% at 50% 42%, #5c1714 0%, #2b0c0b 55%, #110404 100%); }
-  .party.nope::before { border-color: rgba(255, 170, 160, 0.45); }
-  .nope-title { display: inline-block; padding: 4px 16px 6px; border: 4px solid #ff6a5e; border-radius: 8px; color: #ff6a5e; font: 700 clamp(38px, 12vw, 58px)/1 var(--f-board); letter-spacing: 0.06em; text-transform: uppercase; transform: rotate(-5deg); animation: nope-stamp 0.45s 0.1s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
-  .party-card.rejected .band { background: repeating-linear-gradient(-45deg, #8d8d8d 0 8px, #787878 8px 16px); color: #fff; }
-  .party-card.rejected .party-pts { color: var(--no); }
-  .nope-reason { max-width: 34ch; font: italic 400 16px/1.35 var(--f-flavor); color: #ffd9d4; text-wrap: balance; }
-  .party.nope .party-hero { color: #ffb4aa; }
-  .party.nope .party-hint { color: #d9a39d; }
-  .party.nope .rays { background: repeating-conic-gradient(from 0deg, rgba(236, 42, 36, 0.42) 0 9deg, rgba(0, 0, 0, 0.3) 9deg 18deg); animation: rays-spin 22s linear infinite reverse, party-in 0.6s ease both; }
+  .nope-title {
+    display: inline-block;
+    padding: 6px 18px 9px;
+    border-radius: var(--r-md);
+    box-shadow: inset 0 0 0 3px var(--ruby-hi);
+    color: var(--ruby-hi);
+    font: var(--w-wordmark) clamp(40px, 12.5vw, 60px) / 1 var(--f-display);
+    letter-spacing: var(--tr-wordmark);
+    transform: rotate(-4deg);
+    animation: nope-stamp var(--d-snappy) var(--spring-snappy) var(--beat) both;
+  }
+  .party-card.rejected .party-pts { color: var(--no-text-page); }
+  .nope-reason { max-width: 32ch; font: 500 var(--fs-callout) / var(--lh-callout) var(--f-ui); color: var(--label); text-wrap: balance; animation: c76-fade var(--d-slow) var(--ease-out) calc(var(--beat) * 4) both; }
   .stage.duo { display: flex; justify-content: center; align-items: flex-end; }
   .judge { position: relative; flex: 0 0 47%; height: var(--stage-h); }
-  .judge.left { animation: in-left 0.6s 0.15s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
-  .judge.right { animation: in-right 0.6s 0.3s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
-  .judge .hero-bob { position: absolute; inset: 0; display: block; animation: judge-nod 1.3s ease-in-out infinite; }
-  .judge img { position: absolute; left: 50%; bottom: 0; height: 94%; width: auto; max-width: none; transform: translateX(-50%); filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.4)); -webkit-user-drag: none; user-select: none; }
+  .judge.left { animation: in-left var(--d-bouncy) var(--spring-bouncy) var(--beat) both; }
+  .judge.right { animation: in-right var(--d-bouncy) var(--spring-bouncy) calc(var(--beat) * 2.5) both; }
+  .judge .hero-bob { position: absolute; inset: 0; display: block; animation: judge-nod var(--t-judge) var(--ease-loop) infinite; }
+  .judge img { position: absolute; left: 50%; bottom: 0; height: 94%; width: auto; max-width: none; transform: translateX(-50%); -webkit-user-drag: none; user-select: none; }
   /* Armen normaal, armen gekruist, armen normaal, armen gekruist. */
-  .judge .fa { animation: frame-a 1.3s linear infinite; }
-  .judge .fb { animation: frame-b 1.3s linear infinite; }
-  .burst.no { background: var(--g-red); color: #fff; right: auto; left: 50%; bottom: 0; translate: -50% 0; transform: rotate(-8deg); }
-  @keyframes nope-stamp { from { opacity: 0; transform: scale(2.2) rotate(-18deg); } to { opacity: 1; transform: rotate(-5deg); } }
+  .judge .fa { animation: frame-a var(--t-judge) linear infinite; }
+  .judge .fb { animation: frame-b var(--t-judge) linear infinite; }
+  .burst.no { background: var(--ruby); color: var(--on-no); right: auto; left: 50%; bottom: 0; translate: -50% 0; transform: rotate(-8deg); }
+  @keyframes nope-stamp { from { opacity: 0; transform: scale(1.9) rotate(-12deg); } to { opacity: 1; transform: rotate(-4deg); } }
   @keyframes in-left { from { transform: translateX(-130%); } }
   @keyframes in-right { from { transform: translateX(130%); } }
   @keyframes frame-a { 0%, 49.99% { opacity: 1; } 50%, 100% { opacity: 0; } }
@@ -215,15 +620,15 @@
   @keyframes judge-nod { 0%, 45% { transform: translateY(0); } 55% { transform: translateY(6px); } 65%, 100% { transform: translateY(0); } }
 
   /* Vijf binnenkomsten; daarna doet de held het six-seven-gebaar met de handen naar beneden. */
-  .stage[data-anim="pop"] .hero-move { animation: in-pop 0.7s 0.15s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
-  .stage[data-anim="vlieg"] .hero-move { animation: in-vlieg 1.7s 0.1s cubic-bezier(0.4, 0, 0.3, 1) both; }
-  .stage[data-anim="landing"] .hero-move { animation: in-landing 0.9s 0.1s cubic-bezier(0.6, 0, 0.9, 0.6) both; }
-  .stage[data-anim="landing"] .ring { animation: ring 0.7s 0.45s ease-out both; }
-  .stage[data-anim="draai"] .hero-move { animation: in-draai 1s 0.1s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
-  .stage[data-anim="moonwalk"] .hero-move { animation: in-moonwalk 1.8s 0.1s linear both; }
+  .stage[data-anim="pop"] .hero-move { animation: in-pop var(--d-bouncy) var(--spring-bouncy) var(--beat) both; }
+  .stage[data-anim="vlieg"] .hero-move { animation: in-vlieg var(--t-vlieg) var(--ease-std) var(--beat) both; }
+  .stage[data-anim="landing"] .hero-move { animation: in-landing var(--t-landing) var(--ease-in) var(--beat) both; }
+  .stage[data-anim="landing"] .ring { animation: ring var(--d-bouncy) var(--ease-out) calc(var(--beat) * 3.75) both; }
+  .stage[data-anim="draai"] .hero-move { animation: in-draai var(--t-draai) var(--ease-out) var(--beat) both; }
+  .stage[data-anim="moonwalk"] .hero-move { animation: in-moonwalk var(--t-moonwalk) linear var(--beat) both; }
   @keyframes party-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes party-out { to { opacity: 0; } }
-  @keyframes party-pop { from { opacity: 0; transform: scale(0.6) rotate(-10deg); } }
+  @keyframes party-pop { from { opacity: 0; transform: translateY(10px) scale(0.6); } to { opacity: 1; transform: none; } }
   @keyframes party-shake { 0%, 100% { transform: none; } 15% { transform: translate(-7px, 5px); } 30% { transform: translate(6px, -4px); } 45% { transform: translate(-5px, 3px); } 60% { transform: translate(4px, -2px); } 80% { transform: translate(-2px, 1px); } }
   @keyframes rays-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
   @keyframes hero-flip { 0%, 49.99% { transform: scaleX(1); } 50%, 100% { transform: scaleX(-1); } }
@@ -243,15 +648,40 @@
   @keyframes arm-r { 0%, 100% { transform: rotate(12deg); } 50% { transform: rotate(-24deg); } }
   @keyframes clover-fall { from { transform: translateY(-5vh) rotate(0deg); } to { transform: translateY(112vh) rotate(540deg); } }
 
-  @media (max-width: 370px) { .stat .big { font-size: 34px; } .timer-value { font-size: 26px; } .wordmark { font-size: 22px; } .seg button { font-size: 9.5px; } }
-  @media (max-width: 420px) { .brand .city { display: none; } }
+  /* ---------- Smal en breed ---------- */
+  @media (max-width: 400px) { .brand .city { display: none; } }
+  @media (max-width: 370px) {
+    .brand .wordmark { font-size: 21px; }
+    .stat .big { font-size: 26px; }
+    .timer-value { font-size: 21px; line-height: 26px; }
+    .stat, .timer { padding-inline: 10px; }
+    .seg > button { font-size: 14px; }
+  }
+
+  /* ---------- Verminderde beweging: het feest als rustig stilstaand beeld met crossfade ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    #partyIn > .party-stack { animation: c76-fade var(--d-base) var(--ease-out) both !important; animation-duration: var(--d-base) !important; }
+    #partyClovers { display: none; }
+    .party .rays { animation: none !important; transform: translate(-50%, -50%); }
+    .party .judge .fa { opacity: 0 !important; }
+    .party .judge .fb { opacity: 1 !important; }
+    .party .digit { opacity: 1 !important; }
+    .task:active { transform: none; }
+    .spinner::after { animation-duration: calc(var(--t-spin) * 1.6) !important; animation-iteration-count: infinite !important; }
+  }
+  /* Windows Hoog contrast: knoppen van deze pagina krijgen een rand, het gekozen team een omlijning (F48) */
+  @media (forced-colors: active) {
+    .team-pick, .team-btn, .dub { border: 1px solid ButtonText; }
+    .team-pick[aria-pressed="true"] { outline: 3px solid Highlight; outline-offset: -3px; }
+  }
 </style>
 </head>
 <body>
 <div class="app">
 
   <section class="gate" id="viewSetup" hidden>
-    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
+    <p class="eyebrow pill">Dublin · 2026</p>
+    <p class="wordmark" data-text="Crazy"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
     <h1>De app is nog niet gekoppeld</h1>
     <p>Er staan nog geen Firebase-gegevens in <code>shared/config.js</code>. Zodra die erin staan, werkt de app voor alle teams en begeleiders.</p>
     <p class="fine">Wil je alvast oefenen? Open de app met <code>?mock=1</code> achter het adres; alles blijft dan in deze browser.</p>
@@ -259,18 +689,21 @@
   </section>
 
   <section class="gate" id="viewWait">
-    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
+    <p class="eyebrow pill">Dublin · 2026</p>
+    <p class="wordmark" data-text="Crazy"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
+    <span class="spinner" aria-hidden="true"></span>
     <h1>Verbinden…</h1>
     <p class="fine" id="waitText">Even geduld, de app haalt de stand op.</p>
   </section>
 
   <section class="gate" id="viewLogin" hidden>
-    <p class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
+    <p class="eyebrow pill">Dublin · 2026</p>
+    <p class="wordmark" data-text="Crazy"><span class="gilded">Crazy</span> <span class="gold">76</span></p>
     <p class="tagline">76 opdrachten, drie uur, één winnaar.</p>
     <h1>Welk team zijn jullie?</h1>
     <div class="teams" id="teamPick">
-      <button type="button" class="team-pick A" data-team="A" aria-pressed="false"><span class="eyebrow">Team 1</span><span class="nm" id="pickNameA">Team 1</span></button>
-      <button type="button" class="team-pick B" data-team="B" aria-pressed="false"><span class="eyebrow">Team 2</span><span class="nm" id="pickNameB">Team 2</span></button>
+      <button type="button" class="team-pick team-tile A" data-team="A" aria-pressed="false"><span class="eyebrow">Team 1</span><span class="nm" id="pickNameA">Team 1</span></button>
+      <button type="button" class="team-pick team-tile B" data-team="B" aria-pressed="false"><span class="eyebrow">Team 2</span><span class="nm" id="pickNameB">Team 2</span></button>
     </div>
     <div class="field">
       <label class="field-label" for="codeIn">Teamcode (van de begeleiders)</label>
@@ -286,18 +719,18 @@
   </section>
 
   <div id="main" hidden>
-    <header class="top" id="top">
+    <header class="top glass-bar" id="top">
       <div class="brand-row">
-        <p class="brand"><span class="wordmark"><span class="gilded">Crazy</span> <span class="gold">76</span></span><span class="city">Dublin</span></p>
+        <p class="brand"><span class="wordmark" data-text="Crazy"><span class="gilded">Crazy</span> <span class="gold">76</span></span><span class="city">Dublin</span></p>
         <button type="button" class="team-btn" id="teamBtn" aria-label="Team en instellingen">
           <span id="teamName">Team</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
         </button>
       </div>
       <div class="stats">
-        <p class="stat us"><span class="big" id="usPts">0</span><span class="unit">Jullie</span></p>
-        <p class="stat them"><span class="big" id="themPts">0</span><span class="unit" id="themName">Zij</span></p>
-        <div class="timer" id="timer" data-phase="idle" role="status">
+        <p class="stat team-tile us"><span class="big" id="usPts">0</span><span class="unit">Jullie</span></p>
+        <p class="stat team-tile them"><span class="big" id="themPts">0</span><span class="unit" id="themName">Zij</span></p>
+        <div class="timer" id="timer" data-phase="idle" role="timer">
           <span class="timer-label" id="timerLabel">Wacht op start</span>
           <span class="timer-value" id="timerValue">3:00:00</span>
         </div>
@@ -309,8 +742,8 @@
     <main>
       <section id="viewList" aria-label="Opdrachten">
         <div class="tools">
-          <div class="notice gold" id="dubNotice" hidden></div>
-          <div class="notice grey" id="waitNotice" hidden></div>
+          <div class="notice gold on-page" id="dubNotice" hidden></div>
+          <div class="notice grey on-page" id="waitNotice" hidden></div>
           <div class="seg" role="group" aria-label="Laat zien">
             <button type="button" data-filter="open" aria-pressed="false">Open <span class="n" id="nOpen">76</span></button>
             <button type="button" data-filter="pending" aria-pressed="false">Wacht <span class="n" id="nPending">0</span></button>
@@ -322,7 +755,7 @@
             <span class="visually-hidden">Zoek een opdracht</span>
             <input id="q" type="search" placeholder="Zoek op woord of nummer" autocomplete="off" enterkeyhint="search">
           </label>
-          <nav class="cats" id="cats" aria-label="Spring naar categorie"></nav>
+          <nav class="cats chips" id="cats" aria-label="Spring naar categorie"></nav>
         </div>
         <div id="list"></div>
         <p class="empty" id="empty" hidden></p>
@@ -330,11 +763,11 @@
 
       <section id="viewStand" class="stand" aria-label="Stand" hidden>
         <div class="vs" id="vs"></div>
-        <p class="verdict" id="verdict"></p>
+        <p class="verdict surface" id="verdict"></p>
         <p class="h-cat section-label">Jullie punten</p>
         <ul class="ledger" id="ledger"></ul>
         <p class="h-cat section-label">Per categorie</p>
-        <div class="cats-score" id="catsScore"></div>
+        <div class="cats-score card" id="catsScore"></div>
         <p class="fine">De begeleiders keuren ieder bewijs goed of af. Wat zij beslissen, telt.</p>
       </section>
     </main>
@@ -342,11 +775,11 @@
     <nav class="tabbar" aria-label="Weergave">
       <button type="button" data-view="list" aria-pressed="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>
-        Opdrachten
+        <span>Opdrachten</span>
       </button>
       <button type="button" data-view="stand" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>
-        Stand
+        <span>Stand</span>
       </button>
     </nav>
   </div>
@@ -362,7 +795,7 @@
 
   <dialog id="dubDlg" aria-labelledby="dubTitle">
     <form method="dialog" class="sheet">
-      <div class="sheet-head"><h2 id="dubTitle">Dubbel of niks</h2><button class="icon-btn" value="cancel" aria-label="Sluiten">×</button></div>
+      <div class="sheet-head"><h2 id="dubTitle" tabindex="-1" autofocus>Dubbel of niks</h2><button class="icon-btn" value="cancel" aria-label="Sluiten">×</button></div>
       <p id="dubText"></p>
       <p class="notice gold"><b>Let op:</b> dit kan maar één keer. Daarna ligt de keuze vast, ook voor de begeleiders.</p>
       <div class="grid2">
@@ -373,22 +806,32 @@
   </dialog>
 
   <dialog id="teamDlg" aria-labelledby="teamTitle">
-    <form method="dialog" class="sheet">
-      <div class="sheet-head"><h2 id="teamTitle">Jullie team</h2><button class="icon-btn" value="close" aria-label="Sluiten">×</button></div>
+    <form method="dialog" class="sheet team-sheet">
+      <div class="sheet-head"><h2 id="teamTitle" tabindex="-1" autofocus>Jullie team</h2><button class="icon-btn" value="close" aria-label="Sluiten">×</button></div>
       <div class="field">
         <label class="field-label" for="teamNameIn">Teamnaam</label>
         <input id="teamNameIn" maxlength="24" autocomplete="off">
       </div>
       <p class="fine" id="teamInfo"></p>
-      <button type="button" class="btn ghost" id="demoPartyBtn">Bekijk een feestje</button>
-      <button type="button" class="btn ghost" id="demoNopeBtn">Bekijk een afkeuring</button>
-      <button type="button" class="btn ghost" id="logoutBtn">Ander team kiezen</button>
+      <div class="field">
+        <span class="field-label" id="themeLbl">Uiterlijk</span>
+        <div class="seg" role="group" aria-labelledby="themeLbl">
+          <button type="button" data-set-theme="glas" aria-pressed="true">Glas</button>
+          <button type="button" data-set-theme="nitro" aria-pressed="false">Nitro</button>
+        </div>
+        <p class="help">Geldt alleen op deze telefoon.</p>
+      </div>
+      <div class="btn-stack">
+        <button type="button" class="btn ghost" id="demoPartyBtn">Bekijk een feestje</button>
+        <button type="button" class="btn ghost" id="demoNopeBtn">Bekijk een afkeuring</button>
+      </div>
+      <button type="button" class="btn danger" id="logoutBtn">Ander team kiezen</button>
     </form>
   </dialog>
 
   <dialog id="lightbox" class="lightbox" aria-label="Bewijs bekijken">
     <div class="sheet">
-      <div class="sheet-head"><h2 id="lbTitle">Bewijs</h2><button type="button" class="icon-btn" id="lbClose" aria-label="Sluiten">×</button></div>
+      <div class="sheet-head"><h2 id="lbTitle" tabindex="-1" autofocus>Bewijs</h2><button type="button" class="icon-btn" id="lbClose" aria-label="Sluiten">×</button></div>
       <div id="lbBody"></div>
     </div>
   </dialog>
@@ -455,6 +898,7 @@
   <input type="file" id="audioIn" accept="audio/*" hidden>
 </div>
 
+<script src="shared/theme.js"></script>
 <script src="shared/tasks.js"></script>
 <script src="shared/rules.js"></script>
 <script src="shared/config.js"></script>
@@ -648,13 +1092,27 @@ function paintAll() {
   paintStand();
 }
 
+// Alleen weergave: een score die verandert rolt zacht naar zijn nieuwe waarde.
+// De eerste anderhalve seconde niet (bij het opstarten tekent de app de stand twee keer).
+let rollFrom = 0;
+function roll(el, value) {
+  const v = String(value);
+  if (el.textContent === v) return;
+  const old = Number(el.textContent);
+  el.textContent = v;
+  if (performance.now() < rollFrom) return;
+  el.classList.remove('roll-up', 'roll-down'); void el.offsetWidth;
+  el.classList.add(Number(value) >= old ? 'roll-up' : 'roll-down');
+}
+
 function paintHeader() {
   const now = Date.now();
   const me = C.score(P.team, team(), subs, state, now);
   const them = C.score(other(P.team), teams[other(P.team)], subs, state, now);
+  if (!rollFrom) rollFrom = performance.now() + 1500;
   $('teamName').textContent = team().name;
-  $('usPts').textContent = me.total;
-  $('themPts').textContent = them.total;
+  roll($('usPts'), me.total);
+  roll($('themPts'), them.total);
   $('themName').textContent = teams[other(P.team)].name;
   $('progressFill').style.width = `${Math.max(0, Math.min(100, me.total / C.MAX * 100))}%`;
   const n = me.approved.length, w = me.pending.length;
@@ -744,6 +1202,8 @@ function setView(v, scroll = true) {
   $('viewStand').hidden = P.view !== 'stand';
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === P.view)));
   if (scroll) window.scrollTo(0, 0);
+  // Stand meteen tekenen, anders staat hij tot een seconde leeg of verouderd in beeld.
+  if (inMain) paintStand();
 }
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
 
@@ -827,7 +1287,7 @@ function renderTask() {
   dlg.className = `task-dlg g${t.cat}`;
   const head = `
     <div class="sheet-head">
-      <h2 id="taskTitle">Opdracht ${nr}</h2>
+      <h2 id="taskTitle" tabindex="-1" autofocus>Opdracht ${nr}</h2>
       <button type="button" class="icon-btn" data-close aria-label="Sluiten">×</button>
     </div>
     <p class="text">${C.rich(t.text)}</p>
@@ -978,7 +1438,7 @@ function paintStand() {
       <p class="eyebrow">${label}</p>
       <p class="nm">${C.esc(teams[id].name)}</p>
       <p class="tot">${sc.total}</p>
-      <p class="sml">${sc.approved.length} goed · ${sc.pending.length} wacht · ${sc.rejected.length} afgekeurd</p>
+      <p class="sml"><span class="nw">${sc.approved.length} goed ·</span> <span class="nw">${sc.pending.length} wacht ·</span> <span class="nw">${sc.rejected.length} afgekeurd</span></p>
       <p class="sml">max. nog <b>${sc.maxReachable}</b></p>
     </div>`;
   $('vs').innerHTML = card(P.team, me, 'Jullie') + card(other(P.team), them, 'Zij');
@@ -1077,6 +1537,7 @@ function nextParty() {
   // Een open kaart of bewijsvenster ligt anders bovenop het feest.
   document.querySelectorAll('dialog[open]').forEach(d => d.close());
   el.classList.toggle('nope', item.kind === 'nope');
+  el.setAttribute('aria-label', item.kind === 'nope' ? 'Opdracht afgekeurd' : 'Opdracht gehaald');   // alleen de naam voor schermlezers
   if (item.kind === 'nope') { renderNope(item); el.classList.remove('out'); el.hidden = false; buzz([120, 80, 120]); return; }
   const t = C.BY_NR.get(item.nr);
   lastHero = pickOther(HEROES.length, lastHero);
@@ -1085,8 +1546,8 @@ function nextParty() {
   const burst = BURSTS[Math.floor(Math.random() * BURSTS.length)];
   const inner = $('partyIn');
   inner.className = `party-in${anim === 'landing' ? ' shake' : ''}`;
-  inner.innerHTML = `
-    <p class="party-title gilded">Gehaald!</p>
+  inner.innerHTML = `<div class="party-stack">
+    <p class="party-title" data-text="Gehaald!"><span class="gilded">Gehaald!</span></p>
     <div class="party-card g${t.cat}"><div class="band">Opdracht ${item.nr}</div><p class="party-pts">+${item.pts} <small>${item.pts === 1 ? 'punt' : 'punten'}</small></p></div>
     <div class="stage" data-anim="${anim}">
       <div class="rays" aria-hidden="true"></div>
@@ -1096,7 +1557,7 @@ function nextParty() {
       <span class="burst${Math.random() < 0.5 ? ' left' : ''}" aria-hidden="true">${C.esc(burst)}</span>
     </div>
     <p class="party-hero">${hero ? `${C.esc(hero.hero)} ${FLAVORS[Math.floor(Math.random() * FLAVORS.length)]}` : 'Goedgekeurd door het hoofdkwartier.'}</p>
-    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p>`;
+    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p></div>`;
   // Geen figuur (nog niet geladen, geen bereik)? Dan springt de agent in.
   const useCop = () => { const bob = inner.querySelector('.hero-bob'); bob.innerHTML = ''; bob.appendChild($('copTpl').content.cloneNode(true)); inner.querySelector('.stage').classList.add('fallback'); };
   const img = inner.querySelector('.hero-img');
@@ -1116,7 +1577,7 @@ function renderNope(item) {
   const inner = $('partyIn');
   inner.className = 'party-in shake';
   $('partyClovers').innerHTML = '';
-  inner.innerHTML = `
+  inner.innerHTML = `<div class="party-stack">
     <p class="nope-title">Afgekeurd!</p>
     <div class="party-card rejected"><div class="band">Opdracht ${item.nr}</div><p class="party-pts">${item.pts < 0 ? '−' + Math.abs(item.pts) : '0'} <small>${Math.abs(item.pts) === 1 ? 'punt' : 'punten'}</small></p></div>
     ${item.reason ? `<p class="nope-reason">“${C.esc(item.reason)}”</p>` : ''}
@@ -1126,7 +1587,7 @@ function renderNope(item) {
       <span class="burst no" aria-hidden="true">${C.esc(NOPES[Math.floor(Math.random() * NOPES.length)])}</span>
     </div>
     <p class="party-hero">${JUDGES.map(j => C.esc(j.hero)).join(' en ')} keuren dit af. Deze opdracht kan niet opnieuw.</p>
-    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p>`;
+    <p class="party-hint">${item.demo ? 'Voorbeeld · tik om door te gaan' : 'Tik om door te gaan'}</p></div>`;
   inner.querySelectorAll('.judge img').forEach(img => img.addEventListener('error', () => img.remove(), { once: true }));
 }
 function disapprove(nr, reason, pts, demo) {
