@@ -13,8 +13,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Crazy 76 Dublin</title>
+<!-- Vast op Glas, net als Vat Nein (gekozen op 16-10). ?thema=nitro toont alleen als proef het Nitro-thema. -->
 <script>
-(function(){var d=document.documentElement,t=null;try{var m=/[?&]thema=(glas|nitro)(?:&|$)/.exec(location.search);if(m){t=m[1];localStorage.setItem('c76-thema',t);}else{t=localStorage.getItem('c76-thema');}}catch(e){}if(t!=='glas'&&t!=='nitro')t='glas';d.setAttribute('data-theme',t);try{var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',t==='nitro'?'#0a0706':'#04170f');}catch(e){}try{var l=document.createElement('link');l.rel='stylesheet';l.href=t==='nitro'?'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap':'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap';document.head.appendChild(l);}catch(e){}})();
+(function(){var d=document.documentElement,t='glas';try{if(/[?&]thema=nitro(?:&|$)/.test(location.search))t='nitro';localStorage.removeItem('c76-thema');}catch(e){}d.setAttribute('data-theme',t);try{var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',t==='nitro'?'#0a0706':'#04170f');}catch(e){}try{var l=document.createElement('link');l.rel='stylesheet';l.href=t==='nitro'?'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap':'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap';document.head.appendChild(l);}catch(e){}})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -813,14 +814,6 @@
         <input id="teamNameIn" maxlength="24" autocomplete="off">
       </div>
       <p class="fine" id="teamInfo"></p>
-      <div class="field">
-        <span class="field-label" id="themeLbl">Uiterlijk</span>
-        <div class="seg" role="group" aria-labelledby="themeLbl">
-          <button type="button" data-set-theme="glas" aria-pressed="true">Glas</button>
-          <button type="button" data-set-theme="nitro" aria-pressed="false">Nitro</button>
-        </div>
-        <p class="help">Geldt alleen op deze telefoon.</p>
-      </div>
       <div class="btn-stack">
         <button type="button" class="btn ghost" id="demoPartyBtn">Bekijk een feestje</button>
         <button type="button" class="btn ghost" id="demoNopeBtn">Bekijk een afkeuring</button>

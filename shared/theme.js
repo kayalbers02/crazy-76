@@ -1,4 +1,6 @@
 /* Crazy 76: thema Glas of Nitro (gedeeld door teamapp en dashboard). Alles hier is alleen uiterlijk.
+   Sinds 16-10 staan beide apps vast op Glas (zoals Vat Nein); het kopscript in de pagina's leest
+   localStorage niet meer en er zijn geen keuzeknoppen. set() blijft bestaan voor proeven.
    C76.theme.get()      -> 'glas' | 'nitro'
    C76.theme.set(naam)  -> zet <html data-theme>, bewaart in localStorage 'c76-thema',
                            werkt <meta name="theme-color"> bij en zet knoppen [data-set-theme] goed.

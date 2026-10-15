@@ -13,8 +13,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <title>Crazy 76 Begeleiders</title>
+<!-- Vast op Glas, net als Vat Nein (gekozen op 16-10). ?thema=nitro toont alleen als proef het Nitro-thema. -->
 <script>
-(function(){var d=document.documentElement,t=null;try{var m=/[?&]thema=(glas|nitro)(?:&|$)/.exec(location.search);if(m){t=m[1];localStorage.setItem('c76-thema',t);}else{t=localStorage.getItem('c76-thema');}}catch(e){}if(t!=='glas'&&t!=='nitro')t='glas';d.setAttribute('data-theme',t);try{var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',t==='nitro'?'#0a0706':'#04170f');}catch(e){}try{var l=document.createElement('link');l.rel='stylesheet';l.href=t==='nitro'?'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap':'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap';document.head.appendChild(l);}catch(e){}})();
+(function(){var d=document.documentElement,t='glas';try{if(/[?&]thema=nitro(?:&|$)/.test(location.search))t='nitro';localStorage.removeItem('c76-thema');}catch(e){}d.setAttribute('data-theme',t);try{var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',t==='nitro'?'#0a0706':'#04170f');}catch(e){}try{var l=document.createElement('link');l.rel='stylesheet';l.href=t==='nitro'?'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap':'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap';document.head.appendChild(l);}catch(e){}})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -438,7 +439,6 @@
   .set-row select:focus { box-shadow: none; }
   .set-row select:disabled { background-color: transparent; color: var(--fg-3); cursor: not-allowed; }
   .set-row .seg { flex: none; width: 196px; }
-  .set-row.theme { min-height: 56px; }
   .danger-zone .set-h b { font-weight: inherit; }
   .danger-zone .btn { margin-top: 2px; min-height: 52px; border-radius: var(--r-lg); box-shadow: var(--shadow-card); }
   .danger-zone .btn.danger:not([data-armed]) { --btn-bg: var(--card); --btn-fg: var(--no-text); --press: var(--press-dim); --ring: var(--focus-card); }
@@ -678,19 +678,6 @@
               </div>
             </div>
             <p class="fine set-f" id="modeInfo"></p>
-          </div>
-          <div class="set-sec">
-            <p class="eyebrow set-h">Weergave</p>
-            <div class="set-card surface">
-              <div class="field set-row theme">
-                <span class="field-label" id="themeLbl">Uiterlijk</span>
-                <div class="seg" role="group" aria-labelledby="themeLbl">
-                  <button type="button" data-set-theme="glas" aria-pressed="true">Glas</button>
-                  <button type="button" data-set-theme="nitro" aria-pressed="false">Nitro</button>
-                </div>
-              </div>
-            </div>
-            <p class="fine set-f">Geldt alleen op dit apparaat.</p>
           </div>
           <div class="set-sec danger-zone">
             <p class="eyebrow set-h"><b>Opnieuw beginnen</b></p>
