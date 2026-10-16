@@ -197,9 +197,10 @@
   --eyebrow-rule: transparent;
 
   /* Merk */
-  --wordmark-fill: linear-gradient(105deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, .95) 50%, rgba(255, 255, 255, 0) 62%) -150% 0 / 60% 100% no-repeat,
-                   linear-gradient(180deg, #ffffff 0%, #f4fff8 48%, #b9e6cb 100%);
-  --wordmark-sheen: c76-sheen-sweep 9s ease-in-out 1.2s infinite;   /* alleen groot (poort, feest), nooit in de kop */
+  /* Vat Nein v10 .mark-t: felwitte rand bovenin, zilvermint-horizon net onder het midden, bredere veeg elke 6 s */
+  --wordmark-fill: linear-gradient(105deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .55) 43%, #fff 50%, rgba(255, 255, 255, .55) 57%, rgba(255, 255, 255, 0) 70%) -150% 0 / 60% 100% no-repeat,
+                   linear-gradient(180deg, #ffffff 0%, #ffffff 16%, #e2f4e9 20%, #c3e6d1 48%, #92cba9 57%, #b2dec4 66%, #dbf2e4 86%, #f4fdf8 100%);
+  --wordmark-sheen: c76-sheen-sweep 6s cubic-bezier(.45, .05, .25, 1) .8s infinite;   /* alleen groot (poort, feest), nooit in de kop */
   --wordmark-drop: rgba(0, 30, 15, .5);         /* stilstaande schaduwlagen (Vat Nein .mark::before/::after) */
   --wordmark-edge: rgba(0, 0, 0, .2);
   --wordmark-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
@@ -2185,7 +2186,7 @@ dialog .notice { box-shadow: none; }
 /* Glansveeg over het woordmerk (Vat Nein sheen-sweep) */
 @keyframes c76-sheen-sweep {
   0% { background-position: -150% 0, 0 0; }
-  28%, 100% { background-position: 250% 0, 0 0; }
+  30%, 100% { background-position: 250% 0, 0 0; }
 }
 /* Glazen ding verschijnt (Vat Nein glass-in) */
 @keyframes c76-glass-in { from { opacity: 0; scale: .86; } to { opacity: 1; scale: 1; } }
